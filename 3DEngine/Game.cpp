@@ -23,6 +23,7 @@ namespace game
 			_data->Machine.ProcessStateChanges();
 			newTime = _clock.getElapsedTime().asSeconds();
 			frameTime = newTime - currentTime;
+			//std::cout << frameTime << '\n';
 			if (frameTime > 0.25f)
 			{
 				frameTime = 0.25f;

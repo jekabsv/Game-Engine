@@ -13,15 +13,15 @@ namespace game
 	void StartState::Init()
 	{
 		//_data->tools.AddCube(-0.5f, -0.5f, -0.5f, 0.5f, 0.5f, 0.5f, _mesh);
-		std::string a = "C:/Users/jekabs.vidrusks/Downloads/test.stl";
+		std::string a = "C:/Users/jekabs.vidrusks/Downloads/test2.stl";
 		_mesh.ReadSTLBinary(a);
 
 
-		for (auto x : _mesh.tris)
+		/*for (auto x : _mesh.tris)
 		{
 			std::cout << "1: " << x.p[0].x << ' ' << x.p[0].y << ' ' << x.p[0].z << " | " << x.p[1].x << ' ' << x.p[1].y << ' ' << x.p[1].z << " | " << x.p[2].x << ' ' << x.p[2].y << ' ' << x.p[2].z;
 			std::cout << '\n';
-		}
+		}*/
 
 		float fNear = 0.1f;
 		float fFar = 1000.0f;
@@ -98,16 +98,16 @@ namespace game
 
 		matMov.m[3][0] = 0;//Translate X
 		matMov.m[3][1] = 0;//Translate Y
-		matMov.m[3][2] = 15;//Translate Z
+		matMov.m[3][2] = 250;//Translate Z
 		matMov.m[0][3] = 0;
 		matMov.m[1][3] = 0;
 		matMov.m[2][3] = 0;
 
-		vec3d vCamera{ 0,0,-1 };
+		vec3d vCamera{ 0,0,1 };
 
 		transformation = _data->tools.MultiplyMatrixMatrix(transformation, matRotX);
 		transformation = _data->tools.MultiplyMatrixMatrix(transformation, matRotZ);
-		transformation = _data->tools.MultiplyMatrixMatrix(transformation, matRotY);
+		//transformation = _data->tools.MultiplyMatrixMatrix(transformation, matRotY);
 
 		for (auto tri : _mesh.tris)
 		{
@@ -137,10 +137,12 @@ namespace game
 
 			float l = sqrtf(normal.x * normal.x + normal.y * normal.y + normal.z * normal.z);
 			normal.x /= l; normal.y /= l; normal.z /= l;
+			//std::cout << normal.x << '\n';
+			float dotproduct = normal.x * vCamera.x + normal.y * vCamera.y + normal.z * vCamera.z;
 
-			if (!(normal.x * (triTranslated.p[0].x - vCamera.x) +
+			if (normal.x * (triTranslated.p[0].x - vCamera.x) +
 				normal.y * (triTranslated.p[0].y - vCamera.y) +
-				normal.z * (triTranslated.p[0].z - vCamera.z) < 0.0f))
+				normal.z * (triTranslated.p[0].z - vCamera.z) > 0.0f)
 				continue;
 
 
@@ -158,15 +160,22 @@ namespace game
 			triProjected.p[2].x *= 0.5f * (float)SCREEN_WIDTH;
 			triProjected.p[2].y *= 0.5f * (float)SCREEN_HEIGHT;
 
-			sf::VertexArray trigle(sf::LineStrip, 4);
+			sf::VertexArray trigle(sf::Triangles, 3);
+			//std::cout << dotproduct << '\n';
+			trigle[0].color = sf::Color(fabs(dotproduct) * 255.0f, fabs(dotproduct) * 255.0f, fabs(dotproduct) * 255.0f);
+			trigle[1].color = sf::Color(fabs(dotproduct) * 255.0f, fabs(dotproduct) * 255.0f, fabs(dotproduct) * 255.0f);
+			trigle[2].color = sf::Color(fabs(dotproduct) * 255.0f, fabs(dotproduct) * 255.0f, fabs(dotproduct) * 255.0f);
+
+
 			trigle[0].position.x = triProjected.p[0].x;
 			trigle[0].position.y = triProjected.p[0].y;
 			trigle[1].position.x = triProjected.p[1].x;
 			trigle[1].position.y = triProjected.p[1].y;
 			trigle[2].position.x = triProjected.p[2].x;
 			trigle[2].position.y = triProjected.p[2].y;
-			trigle[3].position.x = triProjected.p[0].x;
-			trigle[3].position.y = triProjected.p[0].y;
+			/*trigle[3].position.x = triProjected.p[0].x;
+			trigle[3].position.y = triProjected.p[0].y;*/
+
 			_data->window.draw(trigle);
 		}
 

@@ -109,7 +109,8 @@ namespace game
 		file.read(header, 80);
 		uint32_t triangleCount = 0;
 		file.read(reinterpret_cast<char*>(&triangleCount), sizeof(uint32_t));
-
+		std::cout << triangleCount;
+		tris.reserve(triangleCount);
 		for (uint32_t i = 0; i < triangleCount; ++i)
 		{
 			triangle tri;
@@ -128,5 +129,9 @@ namespace game
 			file.ignore(2);
 		}
 		file.close();
+	}
+	float normalization(float min, float max, float value)
+	{
+		return (value - min) / (max - min);
 	}
 }

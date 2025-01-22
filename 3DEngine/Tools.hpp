@@ -32,6 +32,7 @@ namespace game
 		void MultiplyMatrixVector(vec3d& i, vec3d& o, mat4x4& m);
 		mat4x4 MultiplyMatrixMatrix(mat4x4 mat, mat4x4 mat2);
 		void AddCube(float x1, float y1, float z1, float x2, float y2, float z2, mesh& mesh);
+		float normalization(float min, float max, float value);
 	};
 
 }
