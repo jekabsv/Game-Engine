@@ -37,6 +37,7 @@ namespace game
 		vec3d normalizeVector(vec3d vect);
 		vec3d crossProduct(vec3d vect1, vec3d vect2);
 		vec3d subtractVector(vec3d vect1, vec3d vect2);
+		mesh TransformObj(float fthetax, float fthetay, float fthetaz, float x, float y, float z, mesh _mesh);
 	};
 
 }

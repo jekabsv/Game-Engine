@@ -122,7 +122,7 @@ namespace game
 			_data->tools.MultiplyMatrixVector(triTranslated.p[2], triTranslated.p[2], matMov);
 
 			vec3d normal, vect1, vect2;
-			vect1 = _data->tools.subtractVector(triTranslated.p[1], triTranslated.p[0]);
+			vect1 = _data->tools.subtractVector(triTranslated.p[1], triTranslated.p[0]);	
 			vect2 = _data->tools.subtractVector(triTranslated.p[2], triTranslated.p[0]);
 
 			normal = _data->tools.crossProduct(vect1, vect2);

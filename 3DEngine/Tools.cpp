@@ -162,4 +162,63 @@ namespace game
 		vect3.z = vect1.z - vect2.z;
 		return vect3;
 	}
+	mesh Tools::TransformObj(float fThetax, float fThetay, float fThetaz, float x, float y, float z, mesh _mesh)
+	{
+		mat4x4 matRotZ, matRotX, matRotY, matMov, transformation;
+		for (int i = 0; i < 4; i++) {
+			for (int j = 0; j < 4; j++) {
+				transformation.m[i][j] = (i == j) ? 1 : 0;
+			}
+		}
+		matRotZ.m[0][0] = cosf(fThetaz);
+		matRotZ.m[0][1] = sinf(fThetaz);
+		matRotZ.m[1][0] = -sinf(fThetaz);
+		matRotZ.m[1][1] = cosf(fThetaz);
+		matRotZ.m[2][2] = 1;
+		matRotZ.m[3][3] = 1;
+
+		matRotY.m[0][0] = cosf(fThetay);
+		matRotY.m[1][1] = cosf(fThetay);
+		matRotY.m[2][2] = 1;
+		matRotY.m[1][0] = -sinf(fThetay);
+		matRotY.m[0][1] = sinf(fThetay);
+
+		matRotX.m[0][0] = 1;
+		matRotX.m[1][1] = cosf(fThetax * 0.5f);
+		matRotX.m[1][2] = sinf(fThetax * 0.5f);
+		matRotX.m[2][1] = -sinf(fThetax * 0.5f);
+		matRotX.m[2][2] = cosf(fThetax * 0.5f);
+		matRotX.m[3][3] = 1;
+
+		matMov.m[0][0] = 1;
+		matMov.m[1][1] = 1;
+		matMov.m[2][2] = 1;
+		matMov.m[3][3] = 1;
+
+		matMov.m[3][0] = x;//Translate X
+		matMov.m[3][1] = y;//Translate Y
+		matMov.m[3][2] = z;//Translate Z
+		matMov.m[0][3] = 0;
+		matMov.m[1][3] = 0;
+		matMov.m[2][3] = 0;
+		triangle triProjected, triTranslated;
+
+		transformation = MultiplyMatrixMatrix(transformation, matRotX);
+		transformation = MultiplyMatrixMatrix(transformation, matRotZ);
+		transformation = MultiplyMatrixMatrix(transformation, matRotY);
+
+		for (auto tri : _mesh.tris)
+		{
+			MultiplyMatrixVector(tri.p[0], tri.p[0], transformation);
+			MultiplyMatrixVector(tri.p[1], tri.p[1], transformation);
+			MultiplyMatrixVector(tri.p[2], tri.p[2], transformation);
+
+
+			MultiplyMatrixVector(tri.p[0], tri.p[0], matMov);
+			MultiplyMatrixVector(tri.p[1], tri.p[1], matMov);
+			MultiplyMatrixVector(tri.p[2], tri.p[2], matMov);
+		}
+
+		return _mesh;
+	}
 }
