@@ -9,7 +9,7 @@ namespace game
 {
 	typedef std::unique_ptr<State> StateRef;
 	class StateMachine
-	{//
+	{
 	public:
 		StateMachine() {};
 		~StateMachine() {};

@@ -58,7 +58,6 @@ namespace game
 	}
 	void StartState::Update(float dt)
 	{
-
 		_data->window.clear();
 		mat4x4 matRotZ, matRotX, matRotY, matMov, transformation;
 		for (int i = 0; i < 4; i++) {
@@ -107,42 +106,32 @@ namespace game
 
 		transformation = _data->tools.MultiplyMatrixMatrix(transformation, matRotX);
 		transformation = _data->tools.MultiplyMatrixMatrix(transformation, matRotZ);
-		//transformation = _data->tools.MultiplyMatrixMatrix(transformation, matRotY);
+		transformation = _data->tools.MultiplyMatrixMatrix(transformation, matRotY);
 
 		for (auto tri : _mesh.tris)
 		{
 			triangle triProjected, triTranslated;
 
-
 			_data->tools.MultiplyMatrixVector(tri.p[0], triTranslated.p[0], transformation);
 			_data->tools.MultiplyMatrixVector(tri.p[1], triTranslated.p[1], transformation);
 			_data->tools.MultiplyMatrixVector(tri.p[2], triTranslated.p[2], transformation);
+
 
 			_data->tools.MultiplyMatrixVector(triTranslated.p[0], triTranslated.p[0], matMov);
 			_data->tools.MultiplyMatrixVector(triTranslated.p[1], triTranslated.p[1], matMov);
 			_data->tools.MultiplyMatrixVector(triTranslated.p[2], triTranslated.p[2], matMov);
 
 			vec3d normal, vect1, vect2;
-			vect1.x = triTranslated.p[1].x - triTranslated.p[0].x;
-			vect1.y = triTranslated.p[1].y - triTranslated.p[0].y;
-			vect1.z = triTranslated.p[1].z - triTranslated.p[0].z;
+			vect1 = _data->tools.subtractVector(triTranslated.p[1], triTranslated.p[0]);
+			vect2 = _data->tools.subtractVector(triTranslated.p[2], triTranslated.p[0]);
 
-			vect2.x = triTranslated.p[2].x - triTranslated.p[0].x;
-			vect2.y = triTranslated.p[2].y - triTranslated.p[0].y;
-			vect2.z = triTranslated.p[2].z - triTranslated.p[0].z;
+			normal = _data->tools.crossProduct(vect1, vect2);
+			normal = _data->tools.normalizeVector(normal);
 
-			normal.x = vect1.y * vect2.z - vect1.z * vect2.y;
-			normal.y = vect1.z * vect2.x - vect1.x * vect2.z;
-			normal.z = vect1.x * vect2.y - vect1.y * vect2.x;
-
-			float l = sqrtf(normal.x * normal.x + normal.y * normal.y + normal.z * normal.z);
-			normal.x /= l; normal.y /= l; normal.z /= l;
 			//std::cout << normal.x << '\n';
-			float dotproduct = normal.x * vCamera.x + normal.y * vCamera.y + normal.z * vCamera.z;
-
-			if (normal.x * (triTranslated.p[0].x - vCamera.x) +
-				normal.y * (triTranslated.p[0].y - vCamera.y) +
-				normal.z * (triTranslated.p[0].z - vCamera.z) > 0.0f)
+			float dotproduct = _data->tools.dotProduct(normal, vCamera);
+			vec3d cameratopoint = _data->tools.subtractVector(triTranslated.p[0], vCamera);
+			if (_data->tools.dotProduct(normal, cameratopoint) > 0.0f)
 				continue;
 
 

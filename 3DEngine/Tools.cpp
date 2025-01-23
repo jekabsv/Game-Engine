@@ -130,8 +130,36 @@ namespace game
 		}
 		file.close();
 	}
-	float normalization(float min, float max, float value)
+	float Tools::normalization(float min, float max, float value)
 	{
 		return (value - min) / (max - min);
+	}
+	float Tools::dotProduct(vec3d vect1, vec3d vect2)
+	{
+		return vect1.x * vect2.x + vect1.y * vect2.y + vect1.z * vect2.z;
+	}
+	vec3d Tools::normalizeVector(vec3d vect)
+	{
+		float t = sqrtf(vect.x * vect.x + vect.y * vect.y + vect.z * vect.z);
+		vect.x /= t;
+		vect.y /= t;
+		vect.z /= t;
+		return vect;
+	}
+	vec3d Tools::crossProduct(vec3d vect1, vec3d vect2)
+	{
+		vec3d vect3;
+		vect3.x = vect1.y * vect2.z - vect1.z * vect2.y;
+		vect3.y = vect1.z * vect2.x - vect1.x * vect2.z;
+		vect3.z = vect1.x * vect2.y - vect1.y * vect2.x;
+		return vect3;
+	}
+	vec3d Tools::subtractVector(vec3d vect1, vec3d vect2)
+	{
+		vec3d vect3;
+		vect3.x = vect1.x - vect2.x;
+		vect3.y = vect1.y - vect2.y;
+		vect3.z = vect1.z - vect2.z;
+		return vect3;
 	}
 }
