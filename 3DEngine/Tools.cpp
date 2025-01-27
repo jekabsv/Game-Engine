@@ -162,8 +162,9 @@ namespace game
 		vect3.z = vect1.z - vect2.z;
 		return vect3;
 	}
-	mesh Tools::TransformObj(float fThetax, float fThetay, float fThetaz, float x, float y, float z, mesh _mesh)
+	void Tools::TransformObj(float fThetax, float fThetay, float fThetaz, float x, float y, float z, mesh _mesh, mesh &meshToDraw)
 	{
+		meshToDraw.tris.clear();
 		mat4x4 matRotZ, matRotX, matRotY, matMov, transformation;
 		for (int i = 0; i < 4; i++) {
 			for (int j = 0; j < 4; j++) {
@@ -207,18 +208,21 @@ namespace game
 		transformation = MultiplyMatrixMatrix(transformation, matRotZ);
 		transformation = MultiplyMatrixMatrix(transformation, matRotY);
 
-		for (auto tri : _mesh.tris)
+		for (int i = 0; i < _mesh.tris.size(); i++)
 		{
-			MultiplyMatrixVector(tri.p[0], tri.p[0], transformation);
-			MultiplyMatrixVector(tri.p[1], tri.p[1], transformation);
-			MultiplyMatrixVector(tri.p[2], tri.p[2], transformation);
+			triangle trigle;
+			MultiplyMatrixVector(_mesh.tris[i].p[0], trigle.p[0], transformation);
+			MultiplyMatrixVector(_mesh.tris[i].p[1], trigle.p[1], transformation);
+			MultiplyMatrixVector(_mesh.tris[i].p[2], trigle.p[2], transformation);
 
 
-			MultiplyMatrixVector(tri.p[0], tri.p[0], matMov);
-			MultiplyMatrixVector(tri.p[1], tri.p[1], matMov);
-			MultiplyMatrixVector(tri.p[2], tri.p[2], matMov);
+			MultiplyMatrixVector(trigle.p[0], trigle.p[0], matMov);
+			MultiplyMatrixVector(trigle.p[1], trigle.p[1], matMov);
+			MultiplyMatrixVector(trigle.p[2], trigle.p[2], matMov);
+
+			meshToDraw.tris.push_back(trigle);
 		}
 
-		return _mesh;
+		//return _mesh;
 	}
 }

@@ -66,8 +66,8 @@ namespace game
 			}
 		}
 		fThetax = 1.0f * clock.getElapsedTime().asSeconds();
-		fThetaz = 1.0f * clock.getElapsedTime().asSeconds();
-		fThetay = 1.0f * clock.getElapsedTime().asSeconds();
+		//fThetaz = 1.0f * clock.getElapsedTime().asSeconds();
+		//fThetay = 1.0f * clock.getElapsedTime().asSeconds();
 
 
 		matRotZ.m[0][0] = cosf(fThetaz);
@@ -104,25 +104,32 @@ namespace game
 
 		vec3d vCamera{ 0,0,1 };
 
-		transformation = _data->tools.MultiplyMatrixMatrix(transformation, matRotX);
+		/*transformation = _data->tools.MultiplyMatrixMatrix(transformation, matRotX);
 		transformation = _data->tools.MultiplyMatrixMatrix(transformation, matRotZ);
-		transformation = _data->tools.MultiplyMatrixMatrix(transformation, matRotY);
+		transformation = _data->tools.MultiplyMatrixMatrix(transformation, matRotY);*/
+		
+		mesh meshToDraw;
+		_data->tools.TransformObj(fThetax, fThetay, fThetaz, 0, 0, 250, _mesh, meshToDraw);
+		_data->tools.TransformObj(fThetax, fThetay, fThetaz, 0, 0, 250, _mesh, meshToDraw);
 
-		for (auto tri : _mesh.tris)
+
+
+		for (auto tri : meshToDraw.tris)
 		{
 			triangle triProjected, triTranslated;
+			triTranslated = tri;
 
-			_data->tools.MultiplyMatrixVector(tri.p[0], triTranslated.p[0], transformation);
+			/*_data->tools.MultiplyMatrixVector(tri.p[0], triTranslated.p[0], transformation);
 			_data->tools.MultiplyMatrixVector(tri.p[1], triTranslated.p[1], transformation);
 			_data->tools.MultiplyMatrixVector(tri.p[2], triTranslated.p[2], transformation);
 
 
 			_data->tools.MultiplyMatrixVector(triTranslated.p[0], triTranslated.p[0], matMov);
 			_data->tools.MultiplyMatrixVector(triTranslated.p[1], triTranslated.p[1], matMov);
-			_data->tools.MultiplyMatrixVector(triTranslated.p[2], triTranslated.p[2], matMov);
+			_data->tools.MultiplyMatrixVector(triTranslated.p[2], triTranslated.p[2], matMov);*/
 
 			vec3d normal, vect1, vect2;
-			vect1 = _data->tools.subtractVector(triTranslated.p[1], triTranslated.p[0]);	
+			vect1 = _data->tools.subtractVector(triTranslated.p[1], triTranslated.p[0]);
 			vect2 = _data->tools.subtractVector(triTranslated.p[2], triTranslated.p[0]);
 
 			normal = _data->tools.crossProduct(vect1, vect2);
