@@ -141,9 +141,12 @@ namespace game
 	vec3d Tools::normalizeVector(vec3d vect)
 	{
 		float t = sqrtf(vect.x * vect.x + vect.y * vect.y + vect.z * vect.z);
-		vect.x /= t;
-		vect.y /= t;
-		vect.z /= t;
+		if (t)
+		{
+			vect.x /= t;
+			vect.y /= t;
+			vect.z /= t;
+		}		
 		return vect;
 	}
 	vec3d Tools::crossProduct(vec3d vect1, vec3d vect2)
@@ -224,5 +227,67 @@ namespace game
 		}
 
 		//return _mesh;
+	}
+	mat4x4 Tools::Matrix_QuickInverse(mat4x4& m) // Only for Rotation/Translation Matrices
+	{
+		mat4x4 matrix;
+		matrix.m[0][0] = m.m[0][0]; matrix.m[0][1] = m.m[1][0]; matrix.m[0][2] = m.m[2][0]; matrix.m[0][3] = 0.0f;
+		matrix.m[1][0] = m.m[0][1]; matrix.m[1][1] = m.m[1][1]; matrix.m[1][2] = m.m[2][1]; matrix.m[1][3] = 0.0f;
+		matrix.m[2][0] = m.m[0][2]; matrix.m[2][1] = m.m[1][2]; matrix.m[2][2] = m.m[2][2]; matrix.m[2][3] = 0.0f;
+		matrix.m[3][0] = -(m.m[3][0] * matrix.m[0][0] + m.m[3][1] * matrix.m[1][0] + m.m[3][2] * matrix.m[2][0]);
+		matrix.m[3][1] = -(m.m[3][0] * matrix.m[0][1] + m.m[3][1] * matrix.m[1][1] + m.m[3][2] * matrix.m[2][1]);
+		matrix.m[3][2] = -(m.m[3][0] * matrix.m[0][2] + m.m[3][1] * matrix.m[1][2] + m.m[3][2] * matrix.m[2][2]);
+		matrix.m[3][3] = 1.0f;
+		return matrix;
+	}
+	vec3d Tools::MultiplyVector(vec3d vect1, float a)
+	{
+		vec3d rez;
+		rez.x = vect1.x * a;
+		rez.y = vect1.y * a;
+		rez.z = vect1.z * a;
+		return rez;
+	}
+	mat4x4 Tools::Matrix_PointAt(vec3d& pos, vec3d& target, vec3d& up)
+	{
+		// Calculate new forward direction
+		vec3d newForward = subtractVector(target, pos);
+		newForward = normalizeVector(newForward);
+
+		// Calculate new Up direction
+		vec3d a = MultiplyVector(newForward, dotProduct(up, newForward));
+		vec3d newUp = subtractVector(up, a);
+		newUp = normalizeVector(newUp);
+
+		// New Right direction is easy, its just cross product
+		vec3d newRight = crossProduct(newUp, newForward);
+
+		// Construct Dimensioning and Translation Matrix	
+		mat4x4 matrix;
+		matrix.m[0][0] = newRight.x;	matrix.m[0][1] = newRight.y;	matrix.m[0][2] = newRight.z;	matrix.m[0][3] = 0.0f;
+		matrix.m[1][0] = newUp.x;		matrix.m[1][1] = newUp.y;		matrix.m[1][2] = newUp.z;		matrix.m[1][3] = 0.0f;
+		matrix.m[2][0] = newForward.x;	matrix.m[2][1] = newForward.y;	matrix.m[2][2] = newForward.z;	matrix.m[2][3] = 0.0f;
+		matrix.m[3][0] = pos.x;			matrix.m[3][1] = pos.y;			matrix.m[3][2] = pos.z;			matrix.m[3][3] = 1.0f;
+		return matrix;
+
+	}
+	vec3d Tools::VectorAdd(vec3d vect1, vec3d vect2)
+	{
+		vec3d rez;
+		rez.x = vect1.x + vect2.x;
+		rez.y = vect1.y + vect2.y;
+		rez.z = vect1.z + vect2.z;
+		return rez;
+	}
+	mat4x4 Tools::Matrix_MakeRotationY(float fAngleRad)
+	{
+		mat4x4 matrix;
+		matrix.m[0][0] = cosf(fAngleRad);
+		matrix.m[0][2] = sinf(fAngleRad);
+		matrix.m[2][0] = -sinf(fAngleRad);
+		matrix.m[1][1] = 1.0f;
+		matrix.m[2][2] = cosf(fAngleRad);
+		matrix.m[3][3] = 1.0f;
+		return matrix;
 	}
 }

@@ -27,5 +27,7 @@ namespace game
 		float fThetay;
 		float fThetaz;
 		mat4x4 matProj;
+		float fYaw = 0.0f;   // Yaw (left/right rotation)
+		float fPitch = 0.0f; // Pitch (up/down rotation)
 	};
 }

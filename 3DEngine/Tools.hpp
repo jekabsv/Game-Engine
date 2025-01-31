@@ -38,6 +38,11 @@ namespace game
 		vec3d crossProduct(vec3d vect1, vec3d vect2);
 		vec3d subtractVector(vec3d vect1, vec3d vect2);
 		void TransformObj(float fthetax, float fthetay, float fthetaz, float x, float y, float z, mesh _mesh, mesh& meshToDraw);
+		mat4x4 Matrix_QuickInverse(mat4x4& m);
+		vec3d MultiplyVector(vec3d vect1, float a);
+		mat4x4 Matrix_PointAt(vec3d& pos, vec3d& target, vec3d& up);
+		vec3d VectorAdd(vec3d vect1, vec3d vect2);
+		mat4x4 Matrix_MakeRotationY(float fAngleRad);
 	};
 
 }
