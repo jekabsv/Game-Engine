@@ -23,6 +23,7 @@ namespace game
 		GameDataRef _data;
 		sf::Clock clock;
 		mesh _mesh;
+		mesh Terrain;
 		float fThetax;
 		float fThetay;
 		float fThetaz;
@@ -30,5 +31,6 @@ namespace game
 		float fYaw = 1.57079632679f;   // Yaw (left/right rotation)
 		float fPitch = 0.0f; // Pitch (up/down rotation)
 		vec3d vCamera;
+		float CameraYv = 0.0f;
 	};
 }

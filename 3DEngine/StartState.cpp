@@ -30,16 +30,16 @@ namespace game
 	void StartState::Init()
 	{
         vCamera = { 0, 0, -10 };
+
+
+
 		//_data->tools.AddCube(-0.5f, -0.5f, -0.5f, 0.5f, 0.5f, 0.5f, _mesh);
 		std::string a = "C:/Users/jekabins/Downloads/test2.stl";
 		_mesh.ReadSTLBinary(a);
+        a = "C:/Users/jekabins/Downloads/Terrain.stl";
+        Terrain.ReadSTLBinary(a);
 
 
-		/*for (auto x : _mesh.tris)
-		{
-			std::cout << "1: " << x.p[0].x << ' ' << x.p[0].y << ' ' << x.p[0].z << " | " << x.p[1].x << ' ' << x.p[1].y << ' ' << x.p[1].z << " | " << x.p[2].x << ' ' << x.p[2].y << ' ' << x.p[2].z;
-			std::cout << '\n';
-		}*/
 
 		float fNear = 0.1f;
 		float fFar = 1000.0f;
@@ -94,7 +94,10 @@ namespace game
                 if (event.key.code == sf::Keyboard::D)
                     vCamera.x -= fMovementSpeed;
                 if (event.key.code == sf::Keyboard::Space)
-                    vCamera.y += fMovementSpeed;
+                {
+                    //vCamera.y += fMovementSpeed;
+                    CameraYv += 0.5f;
+                }
                 if (event.key.code == sf::Keyboard::LShift)
                     vCamera.y -= fMovementSpeed;
                 
@@ -111,82 +114,68 @@ namespace game
                 transformation.m[i][j] = (i == j) ? 1 : 0;
             }
         }
-       // fThetax = 1.0f * clock.getElapsedTime().asSeconds();
 
-       
-        vec3d vLight{ -0.0333087, 0.0333272, 0.998889 };
+        vec3d vLight{ -3, 1, -4 };
+        vLight = _data->tools.normalizeVector(vLight);
         vec3d vLookDir;
         mat4x4 matView;
+       // mesh meshToClipp, meshToDraw;
+
+        mesh ObjToClipp, ObjToDraw;
+        mesh TerrainToClipp, TerrainToDraw;
+        mesh TerrainToClipp2, TerrainToDraw2;
+        mesh TerrainToClipp3, TerrainToDraw3;
+        mesh TerrainToClipp4, TerrainToDraw4;
+
+
+        float g = 0.01f;
+        CameraYv -= g;
+
+        vCamera.y += CameraYv;
+        if (vCamera.y <= 0)
+        {
+            CameraYv = 0;
+            vCamera.y = 0;
+        }
+
+
         _data->tools.UpdateCamera(fYaw, fPitch, vCamera, vLookDir, matView);
 
-        //vec3d vUp{ 0, 1, 0 };
 
 
-        //
-        //vLookDir.x = cosf(fYaw) * cosf(fPitch);
-        //vLookDir.y = sinf(fPitch);
-        //vLookDir.z = sinf(fYaw) * cosf(fPitch);
-        //vLookDir = _data->tools.normalizeVector(vLookDir);
-        ////std::cout << vLookDir.x << ' ' << vLookDir.y << ' ' << vLookDir.z << '\n';
+        _data->tools.TransformObj(fThetax, fThetay, fThetaz, 0, 20, 250, _mesh, ObjToClipp);
+        _data->tools.TransformObj(fThetax + 3.14159, fThetay, fThetaz, 0, -5, 0, Terrain, TerrainToClipp);
+        _data->tools.TransformObj(fThetax + 3.14159, fThetay, fThetaz, 997, -5, 0, Terrain, TerrainToClipp2);
+        _data->tools.TransformObj(fThetax + 3.14159, fThetay, fThetaz, 0, -5, 997, Terrain, TerrainToClipp3);
+        _data->tools.TransformObj(fThetax + 3.14159, fThetay, fThetaz, 997, -5, 997, Terrain, TerrainToClipp4);
 
 
-        //vec3d vTarget = _data->tools.VectorAdd(vCamera, vLookDir);
-        //mat4x4 matCamera = _data->tools.Matrix_PointAt(vCamera, vTarget, vUp);
 
-        //mat4x4 matView = _data->tools.Matrix_QuickInverse(matCamera);
+        
 
-        mesh meshToClipp, meshToDraw;
-        _data->tools.TransformObj(fThetax, fThetay, fThetaz, 0, 0, 250, _mesh, meshToClipp);
 
-        _data->tools.CameraClipp(meshToClipp, vCamera, vLookDir, vLight, matView, matProj, meshToDraw);
+        _data->tools.CameraClipp(ObjToClipp, vCamera, vLookDir, vLight, matView, matProj, ObjToDraw);
+        _data->tools.CameraClipp(TerrainToClipp, vCamera, vLookDir, vLight, matView, matProj, TerrainToDraw);
+        _data->tools.CameraClipp(TerrainToClipp2, vCamera, vLookDir, vLight, matView, matProj, TerrainToDraw2);
+        _data->tools.CameraClipp(TerrainToClipp3, vCamera, vLookDir, vLight, matView, matProj, TerrainToDraw3);
+        _data->tools.CameraClipp(TerrainToClipp4, vCamera, vLookDir, vLight, matView, matProj, TerrainToDraw4);
 
-        std::sort(meshToDraw.tris.begin(), meshToDraw.tris.end(), CompareByZDepth);
+        std::sort(ObjToDraw.tris.begin(), ObjToDraw.tris.end(), CompareByZDepth);
+        std::sort(TerrainToDraw.tris.begin(), TerrainToDraw.tris.end(), CompareByZDepth);
+        std::sort(TerrainToDraw2.tris.begin(), TerrainToDraw2.tris.end(), CompareByZDepth);
+        std::sort(TerrainToDraw3.tris.begin(), TerrainToDraw3.tris.end(), CompareByZDepth);
+        std::sort(TerrainToDraw4.tris.begin(), TerrainToDraw4.tris.end(), CompareByZDepth);
 
-        for (auto& triToRaster : meshToDraw.tris)
-        {
-            triangle clipped[2];
-            std::list <triangle> listTriangles;
-            listTriangles.push_back(triToRaster);
-            int nNewTriangles = 1;
-
-            for (int p = 0; p < 4; p++)
-            {
-                int nTrisToAdd = 0;
-                while (nNewTriangles > 0)
-                {
-                    triangle test = listTriangles.front();
-                    listTriangles.pop_front();
-                    nNewTriangles--;
-                    switch (p)
-                    {
-                    case 0:	nTrisToAdd = _data->tools.TriangleClipAgainstPlane({ 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f }, test, clipped[0], clipped[1]); break;
-                    case 1:	nTrisToAdd = _data->tools.TriangleClipAgainstPlane({ 0.0f, (float)SCREEN_HEIGHT - 1, 0.0f }, { 0.0f, -1.0f, 0.0f }, test, clipped[0], clipped[1]); break;
-                    case 2:	nTrisToAdd = _data->tools.TriangleClipAgainstPlane({ 0.0f, 0.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, test, clipped[0], clipped[1]); break;
-                    case 3:	nTrisToAdd = _data->tools.TriangleClipAgainstPlane({ (float)SCREEN_WIDTH - 1, 0.0f, 0.0f }, { -1.0f, 0.0f, 0.0f }, test, clipped[0], clipped[1]); break;
-                    }
-                    for (int w = 0; w < nTrisToAdd; w++)
-                        listTriangles.push_back(clipped[w]);
-                }
-                nNewTriangles = listTriangles.size();
-            }
-            for (auto& x : listTriangles)
-            {
-                sf::VertexArray trigle(sf::Triangles, 3);
-                trigle[0].color = x.color;
-                trigle[1].color = x.color;
-                trigle[2].color = x.color;
-
-                trigle[0].position.x = x.p[0].x;
-                trigle[0].position.y = x.p[0].y;
-                trigle[1].position.x = x.p[1].x;
-                trigle[1].position.y = x.p[1].y;
-                trigle[2].position.x = x.p[2].x;
-                trigle[2].position.y = x.p[2].y;
-
-                _data->window.draw(trigle);
-            }
-        }
+       
+        _data->tools.ClipNDraw(TerrainToDraw4, _data->window);
+        _data->tools.ClipNDraw(TerrainToDraw2, _data->window);
+        _data->tools.ClipNDraw(TerrainToDraw3, _data->window);
+         _data->tools.ClipNDraw(TerrainToDraw, _data->window);
+        _data->tools.ClipNDraw(ObjToDraw, _data->window);
+        
     }
+
+
 
 	void StartState::Draw(float dt)
 	{

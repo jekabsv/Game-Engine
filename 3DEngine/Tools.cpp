@@ -1,5 +1,6 @@
 #include "Tools.hpp"
 #include <iostream>
+#include <list>
 namespace game
 {
 	void Tools::MultiplyMatrixVector(vec3d& i, vec3d& o, mat4x4& m)
@@ -109,7 +110,7 @@ namespace game
 		file.read(header, 80);
 		uint32_t triangleCount = 0;
 		file.read(reinterpret_cast<char*>(&triangleCount), sizeof(uint32_t));
-		std::cout << triangleCount;
+		std::cout << triangleCount << '\n';
 		tris.reserve(triangleCount);
 		for (uint32_t i = 0; i < triangleCount; ++i)
 		{
@@ -331,7 +332,7 @@ namespace game
 		{
 			out_tri1.p[1].x;
 			out_tri1.color = in_tri.color;
-			out_tri1.color = sf::Color::Green;
+			//out_tri1.color = sf::Color::Green;
 			out_tri1.p[0] = *inside_points[0];
 			out_tri1.p[1] = Vector_IntersectPlane(plane_p, plane_n, *inside_points[0], *outside_points[0]);
 			out_tri1.p[2] = Vector_IntersectPlane(plane_p, plane_n, *inside_points[0], *outside_points[1]);
@@ -340,9 +341,9 @@ namespace game
 		if (nInsidePointCount == 2 && nOutsidePointCount == 1)
 		{
 			out_tri1.color = in_tri.color;
-			out_tri1.color = sf::Color::Red;
+			//out_tri1.color = sf::Color::Red;
 			out_tri2.color = in_tri.color;
-			out_tri2.color = sf::Color::Blue;
+			//out_tri2.color = sf::Color::Blue;
 			out_tri1.p[0] = *inside_points[0];
 			out_tri1.p[1] = *inside_points[1];
 			out_tri1.p[2] = Vector_IntersectPlane(plane_p, plane_n, *inside_points[0], *outside_points[0]);
@@ -367,7 +368,7 @@ namespace game
 			vec3d vCameraRay = subtractVector(tri.p[0], vLight);
 			if (dotProduct(normal, vCameraRay) < 0.0f)
 			{
-				float dp = dotProduct(normal, vLookDir);
+				float dp = dotProduct(normal, vLight);
 				triViewed.color = sf::Color(fabs(dp) * 255.0f, fabs(dp) * 255.0f, fabs(dp) * 255.0f);
 
 
@@ -421,7 +422,6 @@ namespace game
 	{
 		vec3d vUp{ 0, 1, 0 };
 
-
 		vLookDir.x = cosf(fYaw) * cosf(fPitch);
 		vLookDir.y = sinf(fPitch);
 		vLookDir.z = sinf(fYaw) * cosf(fPitch);
@@ -433,5 +433,52 @@ namespace game
 
 		matView = Matrix_QuickInverse(matCamera);
 		return 1;
+	}
+	bool Tools::ClipNDraw(mesh meshToDraw, sf::RenderWindow &window)
+	{
+		for (auto& triToRaster : meshToDraw.tris)
+		{
+			triangle clipped[2];
+			std::list <triangle> listTriangles;
+			listTriangles.push_back(triToRaster);
+			int nNewTriangles = 1;
+
+			for (int p = 0; p < 4; p++)
+			{
+				int nTrisToAdd = 0;
+				while (nNewTriangles > 0)
+				{
+					triangle test = listTriangles.front();
+					listTriangles.pop_front();
+					nNewTriangles--;
+					switch (p)
+					{
+					case 0:	nTrisToAdd = TriangleClipAgainstPlane({ 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f }, test, clipped[0], clipped[1]); break;
+					case 1:	nTrisToAdd = TriangleClipAgainstPlane({ 0.0f, (float)SCREEN_HEIGHT - 1, 0.0f }, { 0.0f, -1.0f, 0.0f }, test, clipped[0], clipped[1]); break;
+					case 2:	nTrisToAdd = TriangleClipAgainstPlane({ 0.0f, 0.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, test, clipped[0], clipped[1]); break;
+					case 3:	nTrisToAdd = TriangleClipAgainstPlane({ (float)SCREEN_WIDTH - 1, 0.0f, 0.0f }, { -1.0f, 0.0f, 0.0f }, test, clipped[0], clipped[1]); break;
+					}
+					for (int w = 0; w < nTrisToAdd; w++)
+						listTriangles.push_back(clipped[w]);
+				}
+				nNewTriangles = listTriangles.size();
+			}
+			for (auto& x : listTriangles)
+			{
+				sf::VertexArray trigle(sf::Triangles, 3);
+				trigle[0].color = x.color;
+				trigle[1].color = x.color;
+				trigle[2].color = x.color;
+
+				trigle[0].position.x = x.p[0].x;
+				trigle[0].position.y = x.p[0].y;
+				trigle[1].position.x = x.p[1].x;
+				trigle[1].position.y = x.p[1].y;
+				trigle[2].position.x = x.p[2].x;
+				trigle[2].position.y = x.p[2].y;
+
+				window.draw(trigle);
+			}
+		}
 	}
 }
