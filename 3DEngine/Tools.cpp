@@ -152,7 +152,7 @@ namespace game
 			std::cout << "File opened successfully!" << std::endl;
 
 		std::string line;
-		std::string currentMaterial; // Variable to track the current material
+		std::string currentMaterial;
 		while (std::getline(file, line)) {
 			if (debug)
 				std::cout << "Reading line: " << line << std::endl;
@@ -162,19 +162,16 @@ namespace game
 			ss >> prefix;
 
 			if (prefix == "v") {
-				// Parse vertex coordinates
 				vec3d vertex;
 				ss >> vertex.x >> vertex.y >> vertex.z;
 				vertices.push_back(vertex);
 			}
 			else if (prefix == "vt") {
-				// Parse texture coordinates
 				vec2d texCoord;
 				ss >> texCoord.x >> texCoord.y;
 				texCoords.push_back(texCoord);
 			}
 			else if (prefix == "f") {
-				// Parse face data (triangles)
 				triangle tri;
 				std::string vertexData;
 				for (int i = 0; i < 3; i++) {
@@ -198,7 +195,6 @@ namespace game
 						}
 					}
 
-					// Now map the indices to vertices and texCoords
 					if (vertexIndex - 1 >= 0 && vertexIndex - 1 < vertices.size()) {
 						tri.p[i] = vertices[vertexIndex - 1];
 					}
@@ -211,20 +207,17 @@ namespace game
 						tri.t[i] = texCoords[texCoordIndex - 1];
 					}
 					else {
-						tri.t[i] = vec2d{ 0.0f, 0.0f };  // No texture, set to (0, 0)
+						tri.t[i] = vec2d{ 0.0f, 0.0f };
 					}
 				}
 
-				// Optionally, assign color (if needed)
-				tri.color = sf::Color::White;  // Default color
+				tri.color = sf::Color::White;
 
-				// Assign texture name from current material
 				tri.TextureName = currentMaterial;
 
 				tris.push_back(tri);
 			}
 			else if (prefix == "usemtl") {
-				// When encountering a material reference, update the currentMaterial
 				ss >> currentMaterial;
 				textures.push_back(currentMaterial);
 				if (debug)
@@ -338,7 +331,7 @@ namespace game
 
 		//return _mesh;
 	}
-	mat4x4 Tools::Matrix_QuickInverse(mat4x4& m) // Only for Rotation/Translation Matrices
+	mat4x4 Tools::Matrix_QuickInverse(mat4x4& m)
 	{
 		mat4x4 matrix;
 		matrix.m[0][0] = m.m[0][0]; matrix.m[0][1] = m.m[1][0]; matrix.m[0][2] = m.m[2][0]; matrix.m[0][3] = 0.0f;
@@ -360,19 +353,15 @@ namespace game
 	}
 	mat4x4 Tools::Matrix_PointAt(vec3d& pos, vec3d& target, vec3d& up)
 	{
-		// Calculate new forward direction
 		vec3d newForward = subtractVector(target, pos);
 		newForward = normalizeVector(newForward);
 
-		// Calculate new Up direction
 		vec3d a = MultiplyVector(newForward, dotProduct(up, newForward));
 		vec3d newUp = subtractVector(up, a);
 		newUp = normalizeVector(newUp);
 
-		// New Right direction is easy, its just cross product
 		vec3d newRight = crossProduct(newUp, newForward);
 
-		// Construct Dimensioning and Translation Matrix	
 		mat4x4 matrix;
 		matrix.m[0][0] = newRight.x;	matrix.m[0][1] = newRight.y;	matrix.m[0][2] = newRight.z;	matrix.m[0][3] = 0.0f;
 		matrix.m[1][0] = newUp.x;		matrix.m[1][1] = newUp.y;		matrix.m[1][2] = newUp.z;		matrix.m[1][3] = 0.0f;

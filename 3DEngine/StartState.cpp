@@ -6,43 +6,6 @@
 
 namespace game
 {
-
-
-    //float CalculateZDepth(const triangle& tri)
-    //{
-    //    // Calculate the centroid (average of the 3 vertices)
-    //    float z = (tri.p[0].y + tri.p[1].y + tri.p[2].y) / 3.0f;
-    //    return z;
-    //}
-    //bool CompareByZDepth(const triangle& a, const triangle& b)
-    //{
-    //    // Sort in descending order (furthest first)
-    //    return CalculateZDepth(a) > CalculateZDepth(b);
-    //}
-
-
-
-    //float CalculateDistanceToCamera(const triangle& tri, const vec3d& camera)
-    //{
-    //    // Calculate the centroid (average of the 3 vertices)
-    //    vec3d centroid = {
-    //        (tri.p[0].x + tri.p[1].x + tri.p[2].x) / 3.0f,
-    //        (tri.p[0].y + tri.p[1].y + tri.p[2].y) / 3.0f,
-    //        (tri.p[0].z + tri.p[1].z + tri.p[2].z) / 3.0f
-    //    };
-
-    //    // Calculate the distance from the camera to the centroid of the triangle
-    //    float dx = centroid.x - camera.x;
-    //    float dy = centroid.y - camera.y;
-    //    float dz = centroid.z - camera.z;
-
-    //    return sqrtf(dx * dx + dy * dy + dz * dz);
-    //}
-    //bool CompareByDistanceToCamera(const triangle& a, const triangle& b, const vec3d& camera)
-    //{
-    //    // Sort by distance from the camera (nearest first)
-    //    return CalculateDistanceToCamera(a, camera) < CalculateDistanceToCamera(b, camera);
-    //}
     float CalculateAverageZ(const triangle& t)
     {
         return (t.p[0].z + t.p[1].z + t.p[2].z) / 3.0f;
@@ -50,7 +13,7 @@ namespace game
 
     bool CompareByAverageZ(const triangle& t1, const triangle& t2)
     {
-        return CalculateAverageZ(t1) > CalculateAverageZ(t2); // Sort in descending order (further first)
+        return CalculateAverageZ(t1) > CalculateAverageZ(t2);
     }
 
 
@@ -139,13 +102,13 @@ namespace game
                 if (event.key.code == sf::Keyboard::A)
                 {
                     vec3d right = _data->tools.crossProduct(vLookDir, { 0.0f, 1.0f, 0.0f });
-                    right = _data->tools.normalizeVector(right);  // Make sure the right vector is normalized
+                    right = _data->tools.normalizeVector(right);
                     vCamera = _data->tools.VectorAdd(vCamera, _data->tools.MultiplyVector(right, -fMovementSpeed));
                 }
                 if (event.key.code == sf::Keyboard::D)
                 {
                     vec3d right = _data->tools.crossProduct(vLookDir, { 0.0f, 1.0f, 0.0f });
-                    right = _data->tools.normalizeVector(right);  // Normalize
+                    right = _data->tools.normalizeVector(right);
 
                     vCamera = _data->tools.VectorAdd(vCamera, _data->tools.MultiplyVector(right, fMovementSpeed));
                 }
