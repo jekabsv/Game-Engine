@@ -11,17 +11,27 @@ namespace game
 	{
 		float x, y, z;
 	};
+	struct vec2d
+	{
+		float x, y;
+	};
 
 	struct triangle
 	{
 		vec3d p[3];
 		sf::Color color;
+		vec2d t[3];
+		std::string TextureName;
 	};
 	struct mesh
 	{
 		std::vector<triangle> tris;
-		void ReadSTLBinary(std::string& filename);
+		std::vector<vec3d> vertices;
+		std::vector<vec2d> texCoords;
 
+
+		void ReadSTLBinary(std::string filename);
+		void ReadOBJ(std::string filename, std::vector<std::string>& textures);
 	};
 
 	struct mat4x4
@@ -49,7 +59,8 @@ namespace game
 		int TriangleClipAgainstPlane(vec3d plane_p, vec3d plane_n, triangle& in_tri, triangle& out_tri1, triangle& out_tri2);
 		bool CameraClipp(mesh& meshToClipp, vec3d& vCamera, vec3d& vLookDir, vec3d vLight, mat4x4& matView, mat4x4& matProj, mesh& MeshClipped);
 		bool UpdateCamera(float& fYaw, float& fPitch, vec3d& vCamera, vec3d& vLookDir, mat4x4& matView);
-		bool ClipNDraw(mesh meshToDraw, sf::RenderWindow& window);
+		bool ClipNDraw(mesh meshToDraw, sf::RenderWindow& window, std::map<std::string, sf::Texture> &textures);
+		void LookAtCamera(vec3d& objPos, vec3d& vCamera, float& fYaw, float& fPitch);
 	};
 
 }

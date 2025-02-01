@@ -8,17 +8,52 @@ namespace game
 {
 
 
-    float CalculateZDepth(const triangle& tri)
+    //float CalculateZDepth(const triangle& tri)
+    //{
+    //    // Calculate the centroid (average of the 3 vertices)
+    //    float z = (tri.p[0].y + tri.p[1].y + tri.p[2].y) / 3.0f;
+    //    return z;
+    //}
+    //bool CompareByZDepth(const triangle& a, const triangle& b)
+    //{
+    //    // Sort in descending order (furthest first)
+    //    return CalculateZDepth(a) > CalculateZDepth(b);
+    //}
+
+
+
+    //float CalculateDistanceToCamera(const triangle& tri, const vec3d& camera)
+    //{
+    //    // Calculate the centroid (average of the 3 vertices)
+    //    vec3d centroid = {
+    //        (tri.p[0].x + tri.p[1].x + tri.p[2].x) / 3.0f,
+    //        (tri.p[0].y + tri.p[1].y + tri.p[2].y) / 3.0f,
+    //        (tri.p[0].z + tri.p[1].z + tri.p[2].z) / 3.0f
+    //    };
+
+    //    // Calculate the distance from the camera to the centroid of the triangle
+    //    float dx = centroid.x - camera.x;
+    //    float dy = centroid.y - camera.y;
+    //    float dz = centroid.z - camera.z;
+
+    //    return sqrtf(dx * dx + dy * dy + dz * dz);
+    //}
+    //bool CompareByDistanceToCamera(const triangle& a, const triangle& b, const vec3d& camera)
+    //{
+    //    // Sort by distance from the camera (nearest first)
+    //    return CalculateDistanceToCamera(a, camera) < CalculateDistanceToCamera(b, camera);
+    //}
+    float CalculateAverageZ(const triangle& t)
     {
-        // Calculate the centroid (average of the 3 vertices)
-        float z = (tri.p[0].z + tri.p[1].z + tri.p[2].z) / 3.0f;
-        return z;
+        return (t.p[0].z + t.p[1].z + t.p[2].z) / 3.0f;
     }
-    bool CompareByZDepth(const triangle& a, const triangle& b)
+
+    bool CompareByAverageZ(const triangle& t1, const triangle& t2)
     {
-        // Sort in descending order (furthest first)
-        return CalculateZDepth(a) > CalculateZDepth(b);
+        return CalculateAverageZ(t1) > CalculateAverageZ(t2); // Sort in descending order (further first)
     }
+
+
 
 
 
@@ -30,14 +65,25 @@ namespace game
 	void StartState::Init()
 	{
         vCamera = { 0, 0, -10 };
-
-
-
 		//_data->tools.AddCube(-0.5f, -0.5f, -0.5f, 0.5f, 0.5f, 0.5f, _mesh);
-		std::string a = "C:/Users/jekabins/Downloads/test2.stl";
-		_mesh.ReadSTLBinary(a);
-        a = "C:/Users/jekabins/Downloads/Terrain.stl";
-        Terrain.ReadSTLBinary(a);
+        std::vector <std::string> texturesNames;
+        //_data->tools.AddCube(0, 0, 0, 1, 1, 1, _mesh);
+        _mesh.ReadOBJ(OBJ_FILE_PATH, texturesNames);
+        Terrain.ReadSTLBinary("C:/Users/jekabins/Downloads/Terrain.stl");
+
+
+        for (std::string s : texturesNames)
+            _data->AssetManager.LoadTextureMTL(s, "C:/Users/jekabins/Downloads/obj.mtl");
+
+
+        /*for (int i = 0;i < _mesh.tris.size();i++)
+        {
+            for (int j = 0;j < 3;j++)
+            {
+                std::cout << _mesh.tris[i].p[j].x << ' ' << _mesh.tris[i].p[j].y << ' ' << _mesh.tris[i].p[j].z << ' ';
+            }
+            std::cout << '\n';
+        }*/
 
 
 
@@ -86,13 +132,22 @@ namespace game
                 if (event.key.code == sf::Keyboard::Down)
                     fPitch -= fRotationSpeed;
                 if (event.key.code == sf::Keyboard::W)
-                    vCamera.z += fMovementSpeed;
+                    vCamera = _data->tools.VectorAdd(vCamera, _data->tools.MultiplyVector(vLookDir, fMovementSpeed));
                 if (event.key.code == sf::Keyboard::S)
-                    vCamera.z -= fMovementSpeed;
+                    vCamera = _data->tools.VectorAdd(vCamera, _data->tools.MultiplyVector(vLookDir, -fMovementSpeed));
                 if (event.key.code == sf::Keyboard::A)
-                    vCamera.x += fMovementSpeed;
+                {
+                    vec3d right = _data->tools.crossProduct(vLookDir, { 0.0f, 1.0f, 0.0f });
+                    right = _data->tools.normalizeVector(right);  // Make sure the right vector is normalized
+                    vCamera = _data->tools.VectorAdd(vCamera, _data->tools.MultiplyVector(right, -fMovementSpeed));
+                }
                 if (event.key.code == sf::Keyboard::D)
-                    vCamera.x -= fMovementSpeed;
+                {
+                    vec3d right = _data->tools.crossProduct(vLookDir, { 0.0f, 1.0f, 0.0f });
+                    right = _data->tools.normalizeVector(right);  // Normalize
+
+                    vCamera = _data->tools.VectorAdd(vCamera, _data->tools.MultiplyVector(right, fMovementSpeed));
+                }
                 if (event.key.code == sf::Keyboard::Space)
                 {
                     //vCamera.y += fMovementSpeed;
@@ -114,10 +169,9 @@ namespace game
                 transformation.m[i][j] = (i == j) ? 1 : 0;
             }
         }
-
+        //fThetay = 1.0f * clock.getElapsedTime().asSeconds();
         vec3d vLight{ -3, 1, -4 };
         vLight = _data->tools.normalizeVector(vLight);
-        vec3d vLookDir;
         mat4x4 matView;
        // mesh meshToClipp, meshToDraw;
 
@@ -132,47 +186,50 @@ namespace game
         CameraYv -= g;
 
         vCamera.y += CameraYv;
-        if (vCamera.y <= 0)
+        if (vCamera.y <= 30)
         {
             CameraYv = 0;
-            vCamera.y = 0;
+            vCamera.y = 30;
         }
 
 
         _data->tools.UpdateCamera(fYaw, fPitch, vCamera, vLookDir, matView);
 
+        float ObjYaw;
+        float ObjPitch;
+        vec3d Obj = { 0, 0, 250 };
+        _data->tools.LookAtCamera(Obj, vCamera, ObjYaw, ObjPitch);
+            
+
+        _data->tools.TransformObj(fThetax - 1.57079632679, ObjYaw + 3.14159, fThetaz, 0, 0, 250, _mesh, ObjToClipp);
+        _data->tools.TransformObj(1.57079632679, 0, 0, 0, -5, 0, Terrain, TerrainToClipp);
+        _data->tools.TransformObj(1.57079632679, 0, 0, 997, -5, 0, Terrain, TerrainToClipp2);
+        _data->tools.TransformObj(1.57079632679, 0, 0, 0, -5, 997, Terrain, TerrainToClipp3);
+        _data->tools.TransformObj(1.57079632679, 0, 0, 997, -5, 997, Terrain, TerrainToClipp4);
 
 
-        _data->tools.TransformObj(fThetax, fThetay, fThetaz, 0, 20, 250, _mesh, ObjToClipp);
-        _data->tools.TransformObj(fThetax + 3.14159, fThetay, fThetaz, 0, -5, 0, Terrain, TerrainToClipp);
-        _data->tools.TransformObj(fThetax + 3.14159, fThetay, fThetaz, 997, -5, 0, Terrain, TerrainToClipp2);
-        _data->tools.TransformObj(fThetax + 3.14159, fThetay, fThetaz, 0, -5, 997, Terrain, TerrainToClipp3);
-        _data->tools.TransformObj(fThetax + 3.14159, fThetay, fThetaz, 997, -5, 997, Terrain, TerrainToClipp4);
-
-
-
-        
-
-
-        _data->tools.CameraClipp(ObjToClipp, vCamera, vLookDir, vLight, matView, matProj, ObjToDraw);
+        _data->tools.CameraClipp(ObjToClipp, vCamera, vLookDir, vLookDir, matView, matProj, ObjToDraw);
         _data->tools.CameraClipp(TerrainToClipp, vCamera, vLookDir, vLight, matView, matProj, TerrainToDraw);
         _data->tools.CameraClipp(TerrainToClipp2, vCamera, vLookDir, vLight, matView, matProj, TerrainToDraw2);
         _data->tools.CameraClipp(TerrainToClipp3, vCamera, vLookDir, vLight, matView, matProj, TerrainToDraw3);
         _data->tools.CameraClipp(TerrainToClipp4, vCamera, vLookDir, vLight, matView, matProj, TerrainToDraw4);
-
-        std::sort(ObjToDraw.tris.begin(), ObjToDraw.tris.end(), CompareByZDepth);
-        std::sort(TerrainToDraw.tris.begin(), TerrainToDraw.tris.end(), CompareByZDepth);
-        std::sort(TerrainToDraw2.tris.begin(), TerrainToDraw2.tris.end(), CompareByZDepth);
-        std::sort(TerrainToDraw3.tris.begin(), TerrainToDraw3.tris.end(), CompareByZDepth);
-        std::sort(TerrainToDraw4.tris.begin(), TerrainToDraw4.tris.end(), CompareByZDepth);
-
-       
-        _data->tools.ClipNDraw(TerrainToDraw4, _data->window);
-        _data->tools.ClipNDraw(TerrainToDraw2, _data->window);
-        _data->tools.ClipNDraw(TerrainToDraw3, _data->window);
-         _data->tools.ClipNDraw(TerrainToDraw, _data->window);
-        _data->tools.ClipNDraw(ObjToDraw, _data->window);
         
+        std::sort(ObjToDraw.tris.begin(), ObjToDraw.tris.end(), CompareByAverageZ);
+        std::sort(TerrainToDraw.tris.begin(), TerrainToDraw.tris.end(), CompareByAverageZ);
+        std::sort(TerrainToDraw2.tris.begin(), TerrainToDraw2.tris.end(), CompareByAverageZ);
+        std::sort(TerrainToDraw3.tris.begin(), TerrainToDraw3.tris.end(), CompareByAverageZ);
+        std::sort(TerrainToDraw4.tris.begin(), TerrainToDraw4.tris.end(), CompareByAverageZ);
+
+
+        _data->tools.ClipNDraw(TerrainToDraw4, _data->window, _data->AssetManager._textures);
+        _data->tools.ClipNDraw(TerrainToDraw2, _data->window, _data->AssetManager._textures);
+        _data->tools.ClipNDraw(TerrainToDraw3, _data->window,  _data->AssetManager._textures);
+        _data->tools.ClipNDraw(TerrainToDraw, _data->window, _data->AssetManager._textures);
+        _data->tools.ClipNDraw(ObjToDraw, _data->window, _data->AssetManager._textures);
+
+
+        //std::cout << _data->AssetManager.GetTexture("color_15277357").getSize().x << ' ' << _data->AssetManager.GetTexture("color_15277357").getSize().y;
+        //std::cout << '\n';
     }
 
 

@@ -32,5 +32,7 @@ namespace game
 		float fPitch = 0.0f; // Pitch (up/down rotation)
 		vec3d vCamera;
 		float CameraYv = 0.0f;
+		sf::Texture texture;
+		vec3d vLookDir;
 	};
 }

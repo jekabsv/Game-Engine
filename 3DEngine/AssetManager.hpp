@@ -11,6 +11,7 @@ namespace game
 	class AssetManager
 	{
 	public:
+		std::map <std::string, sf::Texture> _textures;
 		AssetManager() {};
 		~AssetManager() {};
 		void LoadTexture(std::string name, std::string FileName);
@@ -22,8 +23,12 @@ namespace game
 		void LoadSound(std::string name, std::string FileName);
 		sf::SoundBuffer& GetSound(std::string name);
 		//void UnloadSound();
+		void LoadTextureMTL(std::string name, std::string FileName);
+
+		
+
 	private:
-		std::map <std::string, sf::Texture> _textures;
+		
 		std::map <std::string, sf::Font> _fonts;
 		std::map <std::string, sf::SoundBuffer> _sounds;
 	};

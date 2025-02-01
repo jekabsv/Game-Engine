@@ -1,6 +1,13 @@
 #include "Tools.hpp"
 #include <iostream>
 #include <list>
+#include <vector>
+#include <string>
+#include <fstream>
+#include <sstream>
+#include <cstdlib>
+#include "AssetManager.hpp"
+
 namespace game
 {
 	void Tools::MultiplyMatrixVector(vec3d& i, vec3d& o, mat4x4& m)
@@ -98,7 +105,7 @@ namespace game
 
 		mesh.tris.push_back(tri);
 	}
-	void mesh::ReadSTLBinary(std::string& filename)
+	void mesh::ReadSTLBinary(std::string filename)
 	{
 		std::ifstream file(filename, std::ios::binary);
 		if (!file.is_open())
@@ -131,6 +138,104 @@ namespace game
 		}
 		file.close();
 	}
+	void mesh::ReadOBJ(std::string filename, std::vector<std::string> &textures)
+	{
+		textures.clear();
+		const bool debug = false;
+
+		std::ifstream file(filename);
+		if (!file.is_open()) {
+			std::cerr << "Could not open the file!" << std::endl;
+			return;
+		}
+		if (debug)
+			std::cout << "File opened successfully!" << std::endl;
+
+		std::string line;
+		std::string currentMaterial; // Variable to track the current material
+		while (std::getline(file, line)) {
+			if (debug)
+				std::cout << "Reading line: " << line << std::endl;
+
+			std::stringstream ss(line);
+			std::string prefix;
+			ss >> prefix;
+
+			if (prefix == "v") {
+				// Parse vertex coordinates
+				vec3d vertex;
+				ss >> vertex.x >> vertex.y >> vertex.z;
+				vertices.push_back(vertex);
+			}
+			else if (prefix == "vt") {
+				// Parse texture coordinates
+				vec2d texCoord;
+				ss >> texCoord.x >> texCoord.y;
+				texCoords.push_back(texCoord);
+			}
+			else if (prefix == "f") {
+				// Parse face data (triangles)
+				triangle tri;
+				std::string vertexData;
+				for (int i = 0; i < 3; i++) {
+					ss >> vertexData;
+					std::stringstream vertexStream(vertexData);
+					int vertexIndex, texCoordIndex;
+
+					if (std::getline(vertexStream, vertexData, '/')) {
+						vertexIndex = std::stoi(vertexData);
+
+						if (std::getline(vertexStream, vertexData, '/')) {
+							if (!vertexData.empty()) {
+								texCoordIndex = std::stoi(vertexData);
+							}
+							else {
+								texCoordIndex = -1;
+							}
+						}
+						else {
+							texCoordIndex = -1;
+						}
+					}
+
+					// Now map the indices to vertices and texCoords
+					if (vertexIndex - 1 >= 0 && vertexIndex - 1 < vertices.size()) {
+						tri.p[i] = vertices[vertexIndex - 1];
+					}
+					else {
+						std::cerr << "Invalid vertex index detected!" << std::endl;
+						return;
+					}
+
+					if (texCoordIndex != -1 && texCoordIndex - 1 >= 0 && texCoordIndex - 1 < texCoords.size()) {
+						tri.t[i] = texCoords[texCoordIndex - 1];
+					}
+					else {
+						tri.t[i] = vec2d{ 0.0f, 0.0f };  // No texture, set to (0, 0)
+					}
+				}
+
+				// Optionally, assign color (if needed)
+				tri.color = sf::Color::White;  // Default color
+
+				// Assign texture name from current material
+				tri.TextureName = currentMaterial;
+
+				tris.push_back(tri);
+			}
+			else if (prefix == "usemtl") {
+				// When encountering a material reference, update the currentMaterial
+				ss >> currentMaterial;
+				textures.push_back(currentMaterial);
+				if (debug)
+					std::cout << "Using material: " << currentMaterial << std::endl;
+			}
+		}
+
+		file.close();
+	}
+
+
 	float Tools::normalization(float min, float max, float value)
 	{
 		return (value - min) / (max - min);
@@ -189,10 +294,10 @@ namespace game
 		matRotY.m[0][1] = sinf(fThetay);
 
 		matRotX.m[0][0] = 1;
-		matRotX.m[1][1] = cosf(fThetax * 0.5f);
-		matRotX.m[1][2] = sinf(fThetax * 0.5f);
-		matRotX.m[2][1] = -sinf(fThetax * 0.5f);
-		matRotX.m[2][2] = cosf(fThetax * 0.5f);
+		matRotX.m[1][1] = cosf(fThetax);
+		matRotX.m[1][2] = sinf(fThetax);
+		matRotX.m[2][1] = -sinf(fThetax);
+		matRotX.m[2][2] = cosf(fThetax);
 		matRotX.m[3][3] = 1;
 
 		matMov.m[0][0] = 1;
@@ -206,15 +311,19 @@ namespace game
 		matMov.m[0][3] = 0;
 		matMov.m[1][3] = 0;
 		matMov.m[2][3] = 0;
-		triangle triProjected, triTranslated;
 
+		transformation = MultiplyMatrixMatrix(transformation, matRotY);
 		transformation = MultiplyMatrixMatrix(transformation, matRotX);
 		transformation = MultiplyMatrixMatrix(transformation, matRotZ);
-		transformation = MultiplyMatrixMatrix(transformation, matRotY);
+		
 
 		for (int i = 0; i < _mesh.tris.size(); i++)
 		{
 			triangle trigle;
+			trigle.t[0] = _mesh.tris[i].t[0];
+			trigle.t[1] = _mesh.tris[i].t[1];
+			trigle.t[2] = _mesh.tris[i].t[2];
+			trigle.TextureName = _mesh.tris[i].TextureName;
 			MultiplyMatrixVector(_mesh.tris[i].p[0], trigle.p[0], transformation);
 			MultiplyMatrixVector(_mesh.tris[i].p[1], trigle.p[1], transformation);
 			MultiplyMatrixVector(_mesh.tris[i].p[2], trigle.p[2], transformation);
@@ -326,12 +435,17 @@ namespace game
 		if (nInsidePointCount == 3)
 		{
 			out_tri1 = in_tri;
+			out_tri1.TextureName = in_tri.TextureName;
 			return 1;
 		}
 		if (nInsidePointCount == 1 && nOutsidePointCount == 2)
 		{
 			out_tri1.p[1].x;
 			out_tri1.color = in_tri.color;
+			out_tri1.t[0] = in_tri.t[0];
+			out_tri1.t[1] = in_tri.t[1];
+			out_tri1.t[2] = in_tri.t[2];
+			out_tri1.TextureName = in_tri.TextureName;
 			//out_tri1.color = sf::Color::Green;
 			out_tri1.p[0] = *inside_points[0];
 			out_tri1.p[1] = Vector_IntersectPlane(plane_p, plane_n, *inside_points[0], *outside_points[0]);
@@ -341,8 +455,16 @@ namespace game
 		if (nInsidePointCount == 2 && nOutsidePointCount == 1)
 		{
 			out_tri1.color = in_tri.color;
+			out_tri1.t[0] = in_tri.t[0];
+			out_tri1.t[1] = in_tri.t[1];
+			out_tri1.t[2] = in_tri.t[2];
+			out_tri1.TextureName = in_tri.TextureName;
 			//out_tri1.color = sf::Color::Red;
 			out_tri2.color = in_tri.color;
+			out_tri2.t[0] = in_tri.t[0];
+			out_tri2.t[1] = in_tri.t[1];
+			out_tri2.t[2] = in_tri.t[2];
+			out_tri2.TextureName = in_tri.TextureName;
 			//out_tri2.color = sf::Color::Blue;
 			out_tri1.p[0] = *inside_points[0];
 			out_tri1.p[1] = *inside_points[1];
@@ -358,25 +480,26 @@ namespace game
 		for (auto& tri : meshToClipp.tris)
 		{
 			triangle triProjected, triViewed;
-
+			
 			vec3d normal, line1, line2;
 			line1 = subtractVector(tri.p[1], tri.p[0]);
 			line2 = subtractVector(tri.p[2], tri.p[0]);
 			normal = crossProduct(line1, line2);
 			normal = normalizeVector(normal);
 
-			vec3d vCameraRay = subtractVector(tri.p[0], vLight);
+			vec3d vCameraRay = subtractVector(tri.p[0], vCamera);
 			if (dotProduct(normal, vCameraRay) < 0.0f)
 			{
 				float dp = dotProduct(normal, vLight);
 				triViewed.color = sf::Color(fabs(dp) * 255.0f, fabs(dp) * 255.0f, fabs(dp) * 255.0f);
+				//triViewed.color = sf::Color(122,122,122);
 
 
 				MultiplyMatrixVector(tri.p[0], triViewed.p[0], matView);
 				MultiplyMatrixVector(tri.p[1], triViewed.p[1], matView);
 				MultiplyMatrixVector(tri.p[2], triViewed.p[2], matView);
 
-
+				triViewed.TextureName = tri.TextureName;
 
 				
 
@@ -385,6 +508,12 @@ namespace game
 				int nClippedTriangles = 0;
 				triangle clipped[2];
 				nClippedTriangles = TriangleClipAgainstPlane({ 0.0f, 0.0f, 0.1f }, { 0.0f, 0.0f, 1.0f }, triViewed, clipped[0], clipped[1]);
+
+				/*if (clipped[0].TextureName == "color_15277357")
+					std::cout << "hello";
+				if (clipped[1].TextureName == "color_15277357")
+					std::cout << "hello";*/
+
 
 				for (int n = 0; n < nClippedTriangles; n++)
 				{
@@ -412,6 +541,11 @@ namespace game
 					triProjected.p[2].y *= 0.5f * (float)SCREEN_HEIGHT;
 
 					triProjected.color = clipped[n].color;
+					triProjected.t[0] = clipped[n].t[0];
+					triProjected.t[1] = clipped[n].t[1];
+					triProjected.t[2] = clipped[n].t[2];
+					triProjected.TextureName = clipped[n].TextureName;
+					
 					MeshClipped.tris.push_back(triProjected);
 				}
 			}
@@ -434,10 +568,12 @@ namespace game
 		matView = Matrix_QuickInverse(matCamera);
 		return 1;
 	}
-	bool Tools::ClipNDraw(mesh meshToDraw, sf::RenderWindow &window)
+	bool Tools::ClipNDraw(mesh meshToDraw, sf::RenderWindow &window, std::map<std::string, sf::Texture> &textures)
 	{
 		for (auto& triToRaster : meshToDraw.tris)
 		{
+			//std::cout << textures["color_15277357"].getSize().x << ' ' << textures["color_15277357"].getSize().y;
+			//std::cout << '\n';
 			triangle clipped[2];
 			std::list <triangle> listTriangles;
 			listTriangles.push_back(triToRaster);
@@ -470,6 +606,10 @@ namespace game
 				trigle[1].color = x.color;
 				trigle[2].color = x.color;
 
+				trigle[0].texCoords = sf::Vector2f(x.t[0].x, x.t[0].y);
+				trigle[1].texCoords = sf::Vector2f(x.t[1].x, x.t[1].y);
+				trigle[2].texCoords = sf::Vector2f(x.t[2].x, x.t[2].y);
+
 				trigle[0].position.x = x.p[0].x;
 				trigle[0].position.y = x.p[0].y;
 				trigle[1].position.x = x.p[1].x;
@@ -477,8 +617,19 @@ namespace game
 				trigle[2].position.x = x.p[2].x;
 				trigle[2].position.y = x.p[2].y;
 
-				window.draw(trigle);
+				window.draw(trigle, &textures[x.TextureName]);
 			}
 		}
+	}
+	void Tools::LookAtCamera(vec3d& objPos, vec3d& vCamera, float& fYaw, float& fPitch)
+	{
+		vec3d dir = {
+			vCamera.x - objPos.x,
+			vCamera.y - objPos.y,
+			vCamera.z - objPos.z
+		};
+		dir = normalizeVector(dir);
+		fYaw = atan2f(dir.x, dir.z);
+		fPitch = asinf(dir.y);
 	}
 }
