@@ -67,13 +67,14 @@ namespace game
         vCamera = { 0, 0, -10 };
 		//_data->tools.AddCube(-0.5f, -0.5f, -0.5f, 0.5f, 0.5f, 0.5f, _mesh);
         std::vector <std::string> texturesNames;
-        //_data->tools.AddCube(0, 0, 0, 1, 1, 1, _mesh);
-        _mesh.ReadOBJ(OBJ_FILE_PATH, texturesNames);
-        Terrain.ReadSTLBinary("C:/Users/jekabins/Downloads/Terrain.stl");
+
+
+        _mesh.ReadOBJ("../Resources/Object.obj" , texturesNames);
+        Terrain.ReadSTLBinary("../Resources/Terrain.stl");
 
 
         for (std::string s : texturesNames)
-            _data->AssetManager.LoadTextureMTL(s, "C:/Users/jekabins/Downloads/obj.mtl");
+            _data->AssetManager.LoadTextureMTL(s, "../Resources/obj.mtl");
 
 
         /*for (int i = 0;i < _mesh.tris.size();i++)
