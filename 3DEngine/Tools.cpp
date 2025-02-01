@@ -290,4 +290,66 @@ namespace game
 		matrix.m[3][3] = 1.0f;
 		return matrix;
 	}
+	vec3d Tools::Vector_IntersectPlane(vec3d& plane_p, vec3d& plane_n, vec3d& lineStart, vec3d& lineEnd)
+	{
+		plane_n = normalizeVector(plane_n);
+		float plane_d = -dotProduct(plane_n, plane_p);
+		float ad = dotProduct(lineStart, plane_n);
+		float bd = dotProduct(lineEnd, plane_n);
+		float t = (-plane_d - ad) / (bd - ad);
+		vec3d lineStartToEnd = subtractVector(lineEnd, lineStart);
+		vec3d lineToIntersect = MultiplyVector(lineStartToEnd, t);
+		return VectorAdd(lineStart, lineToIntersect);
+	}
+	int Tools::TriangleClipAgainstPlane(vec3d plane_p, vec3d plane_n, triangle& in_tri, triangle& out_tri1, triangle& out_tri2)
+	{
+		plane_n = normalizeVector(plane_n);
+		auto dist = [&](vec3d& p)
+		{
+			vec3d n = normalizeVector(p);
+			return (plane_n.x * p.x + plane_n.y * p.y + plane_n.z * p.z - dotProduct(plane_n, plane_p));
+		};
+		vec3d* inside_points[3];  int nInsidePointCount = 0;
+		vec3d* outside_points[3]; int nOutsidePointCount = 0;
+		float d0 = dist(in_tri.p[0]);
+		float d1 = dist(in_tri.p[1]);
+		float d2 = dist(in_tri.p[2]);
+		if (d0 >= 0) { inside_points[nInsidePointCount++] = &in_tri.p[0]; }
+		else { outside_points[nOutsidePointCount++] = &in_tri.p[0]; }
+		if (d1 >= 0) { inside_points[nInsidePointCount++] = &in_tri.p[1]; }
+		else { outside_points[nOutsidePointCount++] = &in_tri.p[1]; }
+		if (d2 >= 0) { inside_points[nInsidePointCount++] = &in_tri.p[2]; }
+		else { outside_points[nOutsidePointCount++] = &in_tri.p[2]; }
+		if (nInsidePointCount == 0)
+			return 0;
+		if (nInsidePointCount == 3)
+		{
+			out_tri1 = in_tri;
+			return 1;
+		}
+		if (nInsidePointCount == 1 && nOutsidePointCount == 2)
+		{
+			out_tri1.p[1].x;
+			out_tri1.color = in_tri.color;
+			out_tri1.color = sf::Color::Green;
+			out_tri1.p[0] = *inside_points[0];
+			out_tri1.p[1] = Vector_IntersectPlane(plane_p, plane_n, *inside_points[0], *outside_points[0]);
+			out_tri1.p[2] = Vector_IntersectPlane(plane_p, plane_n, *inside_points[0], *outside_points[1]);
+			return 1;
+		}
+		if (nInsidePointCount == 2 && nOutsidePointCount == 1)
+		{
+			out_tri1.color = in_tri.color;
+			out_tri1.color = sf::Color::Red;
+			out_tri2.color = in_tri.color;
+			out_tri2.color = sf::Color::Blue;
+			out_tri1.p[0] = *inside_points[0];
+			out_tri1.p[1] = *inside_points[1];
+			out_tri1.p[2] = Vector_IntersectPlane(plane_p, plane_n, *inside_points[0], *outside_points[0]);
+			out_tri2.p[0] = *inside_points[1];
+			out_tri2.p[1] = out_tri1.p[2];
+			out_tri2.p[2] = Vector_IntersectPlane(plane_p, plane_n, *inside_points[1], *outside_points[0]);
+			return 2;
+		}
+	}
 }

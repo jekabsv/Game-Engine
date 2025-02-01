@@ -14,6 +14,7 @@ namespace game
 	struct triangle
 	{
 		vec3d p[3];
+		sf::Color color;
 	};
 	struct mesh
 	{
@@ -43,6 +44,8 @@ namespace game
 		mat4x4 Matrix_PointAt(vec3d& pos, vec3d& target, vec3d& up);
 		vec3d VectorAdd(vec3d vect1, vec3d vect2);
 		mat4x4 Matrix_MakeRotationY(float fAngleRad);
+		vec3d Vector_IntersectPlane(vec3d& plane_p, vec3d& plane_n, vec3d& lineStart, vec3d& lineEnd);
+		int TriangleClipAgainstPlane(vec3d plane_p, vec3d plane_n, triangle& in_tri, triangle& out_tri1, triangle& out_tri2);
 	};
 
 }
