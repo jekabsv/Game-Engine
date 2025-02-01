@@ -352,4 +352,86 @@ namespace game
 			return 2;
 		}
 	}
+	bool Tools::CameraClipp(mesh& meshToClipp, vec3d &vCamera, vec3d &vLookDir, vec3d vLight, mat4x4 &matView, mat4x4 &matProj, mesh &MeshClipped)
+	{
+		for (auto& tri : meshToClipp.tris)
+		{
+			triangle triProjected, triViewed;
+
+			vec3d normal, line1, line2;
+			line1 = subtractVector(tri.p[1], tri.p[0]);
+			line2 = subtractVector(tri.p[2], tri.p[0]);
+			normal = crossProduct(line1, line2);
+			normal = normalizeVector(normal);
+
+			vec3d vCameraRay = subtractVector(tri.p[0], vLight);
+			if (dotProduct(normal, vCameraRay) < 0.0f)
+			{
+				float dp = dotProduct(normal, vLookDir);
+				triViewed.color = sf::Color(fabs(dp) * 255.0f, fabs(dp) * 255.0f, fabs(dp) * 255.0f);
+
+
+				MultiplyMatrixVector(tri.p[0], triViewed.p[0], matView);
+				MultiplyMatrixVector(tri.p[1], triViewed.p[1], matView);
+				MultiplyMatrixVector(tri.p[2], triViewed.p[2], matView);
+
+
+
+				
+
+
+
+				int nClippedTriangles = 0;
+				triangle clipped[2];
+				nClippedTriangles = TriangleClipAgainstPlane({ 0.0f, 0.0f, 0.1f }, { 0.0f, 0.0f, 1.0f }, triViewed, clipped[0], clipped[1]);
+
+				for (int n = 0; n < nClippedTriangles; n++)
+				{
+					MultiplyMatrixVector(clipped[n].p[0], triProjected.p[0], matProj);
+					MultiplyMatrixVector(clipped[n].p[1], triProjected.p[1], matProj);
+					MultiplyMatrixVector(clipped[n].p[2], triProjected.p[2], matProj);
+
+					triProjected.p[0].x *= -1.0f;
+					triProjected.p[1].x *= -1.0f;
+					triProjected.p[2].x *= -1.0f;
+					triProjected.p[0].y *= -1.0f;
+					triProjected.p[1].y *= -1.0f;
+					triProjected.p[2].y *= -1.0f;
+
+					vec3d vOffsetView = { 1, 1, 0 };
+					triProjected.p[0] = VectorAdd(triProjected.p[0], vOffsetView);
+					triProjected.p[1] = VectorAdd(triProjected.p[1], vOffsetView);
+					triProjected.p[2] = VectorAdd(triProjected.p[2], vOffsetView);
+
+					triProjected.p[0].x *= 0.5f * (float)SCREEN_WIDTH;
+					triProjected.p[0].y *= 0.5f * (float)SCREEN_HEIGHT;
+					triProjected.p[1].x *= 0.5f * (float)SCREEN_WIDTH;
+					triProjected.p[1].y *= 0.5f * (float)SCREEN_HEIGHT;
+					triProjected.p[2].x *= 0.5f * (float)SCREEN_WIDTH;
+					triProjected.p[2].y *= 0.5f * (float)SCREEN_HEIGHT;
+
+					triProjected.color = clipped[n].color;
+					MeshClipped.tris.push_back(triProjected);
+				}
+			}
+		}
+		return 1;
+	}
+	bool Tools::UpdateCamera(float& fYaw, float& fPitch, vec3d& vCamera, vec3d& vLookDir, mat4x4& matView)
+	{
+		vec3d vUp{ 0, 1, 0 };
+
+
+		vLookDir.x = cosf(fYaw) * cosf(fPitch);
+		vLookDir.y = sinf(fPitch);
+		vLookDir.z = sinf(fYaw) * cosf(fPitch);
+		vLookDir = normalizeVector(vLookDir);
+
+
+		vec3d vTarget = VectorAdd(vCamera, vLookDir);
+		mat4x4 matCamera = Matrix_PointAt(vCamera, vTarget, vUp);
+
+		matView = Matrix_QuickInverse(matCamera);
+		return 1;
+	}
 }
