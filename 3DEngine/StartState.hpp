@@ -34,5 +34,14 @@ namespace game
 		float CameraYv = 0.0f;
 		sf::Texture texture;
 		vec3d vLookDir;
+		bool WPressed, SPressed, APressed, DPressed, SpacePressed, OnGround, hidden;
+		sf::Vector2i CameraPos2d;
+		sf::Text Level;
+		sf::Sprite RollButton;
+		sf::Text rollNumber;
+		int location;
+		vec3d locationCoordinates[20];
+		int move;
+		sf::Clock moveclock;
 	};
 }

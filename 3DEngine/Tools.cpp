@@ -7,6 +7,9 @@
 #include <sstream>
 #include <cstdlib>
 #include "AssetManager.hpp"
+#include <random>
+
+
 
 namespace game
 {
@@ -264,10 +267,11 @@ namespace game
 		vect3.z = vect1.z - vect2.z;
 		return vect3;
 	}
-	void Tools::TransformObj(float fThetax, float fThetay, float fThetaz, float x, float y, float z, mesh _mesh, mesh &meshToDraw)
+	void Tools::TransformObj(float fThetax, float fThetay, float fThetaz, float x, float y, float z, float scaleX,
+		float scaleY, float scaleZ, mesh _mesh, mesh &meshToDraw)
 	{
 		meshToDraw.tris.clear();
-		mat4x4 matRotZ, matRotX, matRotY, matMov, transformation;
+		mat4x4 matRotZ, matRotX, matRotY, matMov, transformation, matScale;
 		for (int i = 0; i < 4; i++) {
 			for (int j = 0; j < 4; j++) {
 				transformation.m[i][j] = (i == j) ? 1 : 0;
@@ -305,6 +309,14 @@ namespace game
 		matMov.m[1][3] = 0;
 		matMov.m[2][3] = 0;
 
+
+		matScale.m[0][0] = scaleX;  // Scale X
+		matScale.m[1][1] = scaleY;  // Scale Y
+		matScale.m[2][2] = scaleZ;  // Scale Z
+		matScale.m[3][3] = 1;
+
+
+		transformation = MultiplyMatrixMatrix(transformation, matScale);
 		transformation = MultiplyMatrixMatrix(transformation, matRotY);
 		transformation = MultiplyMatrixMatrix(transformation, matRotX);
 		transformation = MultiplyMatrixMatrix(transformation, matRotZ);
@@ -609,6 +621,7 @@ namespace game
 				window.draw(trigle, &textures[x.TextureName]);
 			}
 		}
+		return 1;
 	}
 	void Tools::LookAtCamera(vec3d& objPos, vec3d& vCamera, float& fYaw, float& fPitch)
 	{
@@ -620,5 +633,13 @@ namespace game
 		dir = normalizeVector(dir);
 		fYaw = atan2f(dir.x, dir.z);
 		fPitch = asinf(dir.y);
+	}
+	int Tools::Random(int from, int to) {
+		std::random_device rd;
+		std::mt19937 gen(rd());
+
+		std::uniform_int_distribution<> dis(from, to);
+
+		return dis(gen);
 	}
 }

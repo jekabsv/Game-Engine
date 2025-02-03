@@ -49,7 +49,8 @@ namespace game
 		vec3d normalizeVector(vec3d vect);
 		vec3d crossProduct(vec3d vect1, vec3d vect2);
 		vec3d subtractVector(vec3d vect1, vec3d vect2);
-		void TransformObj(float fthetax, float fthetay, float fthetaz, float x, float y, float z, mesh _mesh, mesh& meshToDraw);
+		void TransformObj(float fThetax, float fThetay, float fThetaz, float x, float y, float z, float scaleX, float scaleY,
+			float scaleZ, mesh _mesh, mesh& meshToDraw);
 		mat4x4 Matrix_QuickInverse(mat4x4& m);
 		vec3d MultiplyVector(vec3d vect1, float a);
 		mat4x4 Matrix_PointAt(vec3d& pos, vec3d& target, vec3d& up);
@@ -61,6 +62,7 @@ namespace game
 		bool UpdateCamera(float& fYaw, float& fPitch, vec3d& vCamera, vec3d& vLookDir, mat4x4& matView);
 		bool ClipNDraw(mesh meshToDraw, sf::RenderWindow& window, std::map<std::string, sf::Texture> &textures);
 		void LookAtCamera(vec3d& objPos, vec3d& vCamera, float& fYaw, float& fPitch);
+		int Random(int from, int to);
 	};
 
 }
