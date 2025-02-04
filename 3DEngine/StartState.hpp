@@ -8,6 +8,16 @@
 
 namespace game
 {
+	class player
+	{
+	public:
+		int location;
+		int ToMove;
+		mesh Obj;
+		bool finished = 0;
+		int points = 0;
+		sf::Text pointsTxt;
+	};
 
 	class StartState : public State
 	{
@@ -22,7 +32,6 @@ namespace game
 	private:
 		GameDataRef _data;
 		sf::Clock clock;
-		mesh _mesh;
 		mesh Terrain;
 		float fThetax;
 		float fThetay;
@@ -36,12 +45,27 @@ namespace game
 		vec3d vLookDir;
 		bool WPressed, SPressed, APressed, DPressed, SpacePressed, OnGround, hidden;
 		sf::Vector2i CameraPos2d;
-		sf::Text Level;
+		sf::Text LevelTxt;
+		int level;
 		sf::Sprite RollButton;
 		sf::Text rollNumber;
-		int location;
 		vec3d locationCoordinates[20];
-		int move;
 		sf::Clock moveclock;
+		
+		bool ReadyToRoll;
+		sf::Clock RollCooldown;
+		int PlayerToMove;
+		player players[3];
+		bool playersToSkip[3];
+		sf::Sprite Card;
+		bool DrawCard;
+		mesh Levels[9];
+		int nrFinished = 0;
+
+		sf::Sprite icon[3];
+		sf::Color Background[9];
+
+		int vcameraFinal = 0;
+
 	};
 }

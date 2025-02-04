@@ -6,6 +6,11 @@
 
 namespace game
 {
+    
+
+
+
+
     float CalculateAverageZ(const triangle& t)
     {
         return (t.p[0].z + t.p[1].z + t.p[2].z) / 3.0f;
@@ -21,12 +26,24 @@ namespace game
 	}
 	void StartState::Init()
 	{
-        location = 0;
+        vcameraFinal = 75;
+        Background[0] = sf::Color(20, 20, 20);
+        Background[1] = sf::Color(45, 30, 30);
+        level = 0;
+
+        nrFinished = 0;
+        DrawCard = 0;
+        PlayerToMove = 2;
         OnGround = false;
         CameraPos2d = _data->inputManager.GetMousePosition(_data->window);
+        playersToSkip[0] = 0;
+        playersToSkip[1] = 0;
+        playersToSkip[2] = 0;
 
-        locationCoordinates[0] = { 0, 0, 87 };
-        locationCoordinates[1] = { 26.89, 0, 82.78 };
+
+
+        //locationCoordinates[0] = { 0, 0, 87 };
+        //locationCoordinates[1] = { 26.89, 0, 82.78 };
 
         for (int i = 0; i < 20; ++i) {
             double angleDeg = i * 18;
@@ -41,11 +58,26 @@ namespace game
 
 
 
-        vCamera = { 95, 76, -95 };
+
+
+
+
+
+        vCamera = { 95, 75, -95 };
         fYaw = 2.3;
         fPitch = -0.5;
 		//_data->tools.AddCube(-0.5f, -0.5f, -0.5f, 0.5f, 0.5f, 0.5f, _mesh);
         std::vector <std::string> texturesNames;
+
+        _data->AssetManager.LoadTexture("Rectangle", "../../Resources/LimboCard1.png");
+        Card.setTexture(_data->AssetManager.GetTexture("Rectangle"));
+        Card.setScale(1, 1);
+        Card.setOrigin(Card.getGlobalBounds().width/2, Card.getGlobalBounds().height/2);
+        Card.setPosition(960, 540);
+        
+        //Card.setRotation(90);
+
+
 
         _data->AssetManager.LoadTexture("DiceRoll", "../../Resources/Dice.png");
         RollButton.setTexture(_data->AssetManager.GetTexture("DiceRoll"));
@@ -60,21 +92,68 @@ namespace game
         rollNumber.setPosition(200, 50);
 
 
-        Level.setFont(_data->AssetManager.GetFont("MainFont"));
-        Level.setString("LIMBO");
-        Level.setScale(3, 3);
-        Level.setPosition(1550, 50);
+        LevelTxt.setFont(_data->AssetManager.GetFont("MainFont"));
+        LevelTxt.setString("LIMBO");
+        LevelTxt.setScale(3, 3);
+        LevelTxt.setPosition(1550, 50);
+
+        players[0].pointsTxt.setFont(_data->AssetManager.GetFont("Numbers"));
+        players[0].pointsTxt.setString("0");
+        players[0].pointsTxt.setPosition(820, 130);
+        players[1].pointsTxt.setFont(_data->AssetManager.GetFont("Numbers"));
+        players[1].pointsTxt.setString("0");
+        players[1].pointsTxt.setPosition(920, 130);
+        players[2].pointsTxt.setFont(_data->AssetManager.GetFont("Numbers"));
+        players[2].pointsTxt.setString("0");
+        players[2].pointsTxt.setPosition(1020, 130);
 
 
-
-
-        _mesh.ReadOBJ("../../Resources/Object.obj" , texturesNames);
+        players[0].Obj.ReadOBJ("../../Resources/Player1.obj", texturesNames);
         for (std::string s : texturesNames)
-            _data->AssetManager.LoadTextureMTL(s, "../../Resources/Object.mtl");
+            _data->AssetManager.LoadTextureMTL(s, "../../Resources/Player1.mtl");
 
-        Terrain.ReadOBJ("../../Resources/Limbo2.obj", texturesNames);
+        players[1].Obj.ReadOBJ("../../Resources/Player2.obj", texturesNames);
         for (std::string s : texturesNames)
-            _data->AssetManager.LoadTextureMTL(s, "../../Resources/Limbo2.mtl");
+            _data->AssetManager.LoadTextureMTL(s, "../../Resources/Player2.mtl");
+
+        players[2].Obj.ReadOBJ("../../Resources/Player3.obj", texturesNames);
+        for (std::string s : texturesNames)
+            _data->AssetManager.LoadTextureMTL(s, "../../Resources/Player3.mtl");
+
+        Levels[0].ReadOBJ("../../Resources/Limbo.obj", texturesNames);
+        for (std::string s : texturesNames)
+            _data->AssetManager.LoadTextureMTL(s, "../../Resources/Limbo.mtl");
+        Levels[1].ReadOBJ("../../Resources/Limbo.obj", texturesNames);
+        for (std::string s : texturesNames)
+            _data->AssetManager.LoadTextureMTL(s, "../../Resources/Limbo.mtl");
+
+        _data->AssetManager.LoadTexture("Icon1", "../../Resources/icon1.png");
+        icon[0].setTexture(_data->AssetManager.GetTexture("Icon1"));
+        _data->AssetManager.LoadTexture("Icon2", "../../Resources/icon2.png");
+        icon[1].setTexture(_data->AssetManager.GetTexture("Icon2"));
+        _data->AssetManager.LoadTexture("Icon3", "../../Resources/icon3.png");
+        icon[2].setTexture(_data->AssetManager.GetTexture("Icon3"));
+        
+
+        icon[0].setPosition(800, 70);
+        icon[0].setScale(2, 2);
+        icon[1].setPosition(900, 70);
+        icon[1].setScale(2, 2);
+        icon[2].setPosition(1000, 70);
+        icon[2].setScale(2, 2);
+
+
+       // Levels[1].ReadOBJ("../../Resources/Player3.obj", texturesNames);
+        //for (std::string s : texturesNames)
+         //   _data->AssetManager.LoadTextureMTL(s, "../../Resources/Player3.mtl");
+
+
+
+        
+
+        /*Terrain.ReadOBJ("../../Resources/Limbo2.obj", texturesNames);
+        for (std::string s : texturesNames)
+            _data->AssetManager.LoadTextureMTL(s, "../../Resources/Limbo2.mtl");*/
 
 
 
@@ -160,14 +239,41 @@ namespace game
 
             if (event.type == sf::Event::MouseButtonPressed)
             {
-                if (_data->inputManager.IsSpriteClicked(RollButton, sf::Mouse::Left, _data->window))
+                if (_data->inputManager.IsSpriteClicked(RollButton, sf::Mouse::Left, _data->window) && RollCooldown.getElapsedTime().asSeconds() > 0.5 
+                    && !players[PlayerToMove].ToMove && !DrawCard)
                 {
+                    RollCooldown.restart();
+                    PlayerToMove++;
+                    PlayerToMove = PlayerToMove % 3;
+                    while(playersToSkip[PlayerToMove])
+                    {
+                        //Skip Tex
+                        playersToSkip[PlayerToMove] = 0;
+                        PlayerToMove++;
+                        PlayerToMove = PlayerToMove % 3;
+                    }
+                    if (players[PlayerToMove].finished)
+                    {
+                        playersToSkip[PlayerToMove] = 0;
+                        PlayerToMove++;
+                    }
+                    if (players[PlayerToMove].finished)
+                    {
+                        playersToSkip[PlayerToMove] = 0;
+                        PlayerToMove++;
+                    }
+
+
                     moveclock.restart();
                     int k;
                     k = _data->tools.Random(1, 6);
                     //location += k;
-                    move = k;
+                    players[PlayerToMove].ToMove = k;
                     rollNumber.setString(std::to_string(k));
+                }
+                if (_data->inputManager.IsSpriteClicked(Card, sf::Mouse::Left, _data->window) && DrawCard)
+                {
+                    DrawCard = 0;
                 }
             }
             if (event.type == sf::Event::KeyPressed)
@@ -198,7 +304,10 @@ namespace game
                     //location++;
                     //finallocation++;
                     //move++;
-                    move += 10;
+                    PlayerToMove++;
+                    PlayerToMove = PlayerToMove % 3;
+                    players[PlayerToMove].ToMove += 19;
+                    
                    // vCamera.y -= fMovementSpeed;
                 }
             }
@@ -220,50 +329,74 @@ namespace game
     void StartState::Update(float dt)
     {
 
-        _data->window.clear(sf::Color(20, 20, 20));
-
-        location = location % 20;
-        if (moveclock.getElapsedTime().asSeconds() > 0.5 && !move)
+        //std::cout << vcameraFinal << ' ';
+        /*if (vCamera.y > vcameraFinal)
         {
-            if (location == 10)
-                location = 7;
-            if (location == 11)
-                location = 1;
-            if (location == 5)
-                location = 2;
+            std::cout << "hello " << vCamera.y << '\n';
+            --vCamera.y;
+            
+        }*/
+        _data->window.clear(Background[level]);
+
+
+
+
+        players[PlayerToMove].location = players[PlayerToMove].location % 20;
+        if (moveclock.getElapsedTime().asSeconds() > 0.01 && !players[PlayerToMove].ToMove)
+        {
+            if(level == 0)
+            {
+                if (players[PlayerToMove].location == 10)
+                    players[PlayerToMove].location = 7;
+                if (players[PlayerToMove].location == 11)
+                    players[PlayerToMove].location = 1;
+                if (players[PlayerToMove].location == 5)
+                    players[PlayerToMove].location = 2;
+            }
+            
+            
         }
-        if (moveclock.getElapsedTime().asSeconds() > 0.5 && move)
+        if (moveclock.getElapsedTime().asSeconds() > 0.01 && players[PlayerToMove].ToMove)
         {
             moveclock.restart();
-            location++;
-            move--;
-            location = location % 20;
+            players[PlayerToMove].location++;
+            players[PlayerToMove].ToMove--;
+            players[PlayerToMove].location = players[PlayerToMove].location % 20;
+
+            if ((players[PlayerToMove].location == 1 || players[PlayerToMove].location == 4 || players[PlayerToMove].location == 8 ||
+                players[PlayerToMove].location == 12 || players[PlayerToMove].location == 16 || players[PlayerToMove].location == 18) && !players[PlayerToMove].ToMove && level == 0)
+            {
+                DrawCard = 1;
+            }
+            if (players[PlayerToMove].location == 19 && !players[PlayerToMove].ToMove)
+            {
+                if (nrFinished == 0)
+                    players[PlayerToMove].points += 2;
+                else if (nrFinished == 1)
+                    players[PlayerToMove].points += 1;
+                players[PlayerToMove].finished = 1;
+                nrFinished++;
+                players[PlayerToMove].pointsTxt.setString(std::to_string(players[PlayerToMove].points));
+            }
         }
 
-        
+        if (nrFinished == 3)
+        {
+            level++;
+            nrFinished = 0;
+            vcameraFinal -= 150;
+        }
 
 
         if (hidden)
             _data->window.setMouseCursorVisible(0);
         else _data->window.setMouseCursorVisible(1);
-
-
-        
-
         sf::Vector2i CameraPos2d2;
         CameraPos2d2 = _data->inputManager.GetMousePosition(_data->window);
         if(hidden)
         {
             fYaw += (CameraPos2d2.x - CameraPos2d.x) / 180.0f;
             fPitch -= (CameraPos2d2.y - CameraPos2d.y) / 180.0f;
-
-            if ((CameraPos2d2.x - CameraPos2d.x) > 100)
-            {
-                std::cout << (CameraPos2d2.x - CameraPos2d.x) << '\n';
-            }
-
-            //std::cout << (CameraPos2d2.x - CameraPos2d.x) << '\n';
-
             if (CameraPos2d2.x > 1900 || CameraPos2d2.x < 20 || CameraPos2d2.y > 1060 || CameraPos2d2.y < 20)
             {
                 sf::Mouse::setPosition(sf::Vector2i(960, 540));
@@ -278,33 +411,26 @@ namespace game
 
 
 
-        mat4x4 matRotZ, matRotX, matRotY, matMov, transformation;
-        for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < 4; j++) {
-                transformation.m[i][j] = (i == j) ? 1 : 0;
-            }
-        }
-        //fThetay = 1.0f * clock.getElapsedTime().asSeconds();
-        vec3d vLight{ -3, 1, -4 };
-        vLight = _data->tools.normalizeVector(vLight);
+        vec3d vLight{ -0.6, 0.2, -0.8 };
+        //vLight = _data->tools.normalizeVector(vLight);
+
+
         mat4x4 matView;
-       // mesh meshToClipp, meshToDraw;
 
         mesh ObjToClipp, ObjToDraw;
         mesh TerrainToClipp, TerrainToDraw;
         mesh TerrainToClipp2, TerrainToDraw2;
-        mesh TerrainToClipp3, TerrainToDraw3;
-        mesh TerrainToClipp4, TerrainToDraw4;
 
 
-        float g = 0;
+
+        float g = 0.25;
         CameraYv -= g;
 
         vCamera.y += CameraYv;
-        if (vCamera.y <= 30)
+       if (vCamera.y <= vcameraFinal)
         {
             CameraYv = 0;
-            vCamera.y = 30;
+            vCamera.y = vcameraFinal;
             OnGround = true;
         }
         else OnGround = false;
@@ -318,45 +444,47 @@ namespace game
         //_data->tools.LookAtCamera(Obj, vCamera, ObjYaw, ObjPitch);
             
 
-        _data->tools.TransformObj(fThetax - 1.57079632679, 0, fThetaz, locationCoordinates[location].x, locationCoordinates[location].y, locationCoordinates[location].z, 0.3, 0.3, 0.3, _mesh, ObjToClipp);
-        _data->tools.TransformObj(-1.57079632679, 0, 0, 0, -5, 0, 1, 1, 1, Terrain, TerrainToClipp);
 
-        _data->tools.TransformObj(1.57079632679, 0, 0, 997, -5, 0, 1, 1, 1, Terrain, TerrainToClipp2);
-        _data->tools.TransformObj(1.57079632679, 0, 0, 0, -5, 997,1, 1, 1, Terrain, TerrainToClipp3);
-        _data->tools.TransformObj(1.57079632679, 0, 0, 997, -5, 997, 1, 1, 1, Terrain, TerrainToClipp4);
 
+        _data->tools.TransformObj(fThetax - 1.57079632679, 3.14159265358767, fThetaz, locationCoordinates[players[PlayerToMove].location].x, locationCoordinates[players[PlayerToMove].location].y, locationCoordinates[players[PlayerToMove].location].z, 0.3, 0.3, 0.3, players[PlayerToMove].Obj, ObjToClipp);
+        _data->tools.TransformObj(-1.57079632679, 0, 0, 0, 0, 0, 1, 1, 1, Levels[level], TerrainToClipp);
+        _data->tools.TransformObj(-1.57079632679, 0, 0, 0, -150, 0, 1, 1, 1, Levels[level], TerrainToClipp2);
 
         _data->tools.CameraClipp(ObjToClipp, vCamera, vLookDir, vLookDir, matView, matProj, ObjToDraw);
         _data->tools.CameraClipp(TerrainToClipp, vCamera, vLookDir, vLight, matView, matProj, TerrainToDraw);
-
         _data->tools.CameraClipp(TerrainToClipp2, vCamera, vLookDir, vLight, matView, matProj, TerrainToDraw2);
-        _data->tools.CameraClipp(TerrainToClipp3, vCamera, vLookDir, vLight, matView, matProj, TerrainToDraw3);
-        _data->tools.CameraClipp(TerrainToClipp4, vCamera, vLookDir, vLight, matView, matProj, TerrainToDraw4);
         
         std::sort(ObjToDraw.tris.begin(), ObjToDraw.tris.end(), CompareByAverageZ);
         std::sort(TerrainToDraw.tris.begin(), TerrainToDraw.tris.end(), CompareByAverageZ);
         std::sort(TerrainToDraw2.tris.begin(), TerrainToDraw2.tris.end(), CompareByAverageZ);
-        std::sort(TerrainToDraw3.tris.begin(), TerrainToDraw3.tris.end(), CompareByAverageZ);
-        std::sort(TerrainToDraw4.tris.begin(), TerrainToDraw4.tris.end(), CompareByAverageZ);
 
-
-        _data->tools.ClipNDraw(TerrainToDraw4, _data->window, _data->AssetManager._textures);
         _data->tools.ClipNDraw(TerrainToDraw2, _data->window, _data->AssetManager._textures);
-        _data->tools.ClipNDraw(TerrainToDraw3, _data->window,  _data->AssetManager._textures);
         _data->tools.ClipNDraw(TerrainToDraw, _data->window, _data->AssetManager._textures);
         _data->tools.ClipNDraw(ObjToDraw, _data->window, _data->AssetManager._textures);
-
-
-        //std::cout << _data->AssetManager.GetTexture("color_15277357").getSize().x << ' ' << _data->AssetManager.GetTexture("color_15277357").getSize().y;
-        //std::cout << '\n';
     }
 
 
 
 	void StartState::Draw(float dt)
 	{
-		//_data->window.clear();
-		_data->window.draw(Level);
+        sf::RectangleShape border;
+        border.setSize(sf::Vector2f(64, 64));
+        border.setPosition(icon[PlayerToMove].getPosition().x, 70);
+        border.setFillColor(sf::Color(0, 0, 0, 0));
+        border.setOutlineThickness(3);
+        border.setOutlineColor(sf::Color(255, 255, 255));
+
+
+        _data->window.draw(players[0].pointsTxt);
+        _data->window.draw(players[1].pointsTxt);
+        _data->window.draw(players[2].pointsTxt);
+        _data->window.draw(icon[0]);
+        _data->window.draw(icon[1]);
+        _data->window.draw(icon[2]);
+        _data->window.draw(border);
+        if(DrawCard)
+            _data->window.draw(Card);
+		_data->window.draw(LevelTxt);
         _data->window.draw(rollNumber);
         _data->window.draw(RollButton);
 		_data->window.display();
