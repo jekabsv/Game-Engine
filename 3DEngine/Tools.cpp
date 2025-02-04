@@ -569,7 +569,7 @@ namespace game
 		matView = Matrix_QuickInverse(matCamera);
 		return 1;
 	}
-	bool Tools::ClipNDraw(mesh meshToDraw, sf::RenderWindow &window, std::map<std::string, sf::Texture> &textures)
+	bool Tools::ClipNDraw(mesh meshToDraw, sf::RenderWindow &window, std::map<std::string, sf::Texture> &textures, int Transparency)
 	{
 		for (auto& triToRaster : meshToDraw.tris)
 		{
@@ -603,9 +603,13 @@ namespace game
 			for (auto& x : listTriangles)
 			{
 				sf::VertexArray trigle(sf::Triangles, 3);
-				trigle[0].color = x.color;
+				/*trigle[0].color = x.color;
 				trigle[1].color = x.color;
-				trigle[2].color = x.color;
+				trigle[2].color = x.color;*/
+
+				trigle[0].color = sf::Color(x.color.r, x.color.g, x.color.b, Transparency);
+				trigle[1].color = sf::Color(x.color.r, x.color.g, x.color.b, Transparency);
+				trigle[2].color = sf::Color(x.color.r, x.color.g, x.color.b, Transparency);
 
 				trigle[0].texCoords = sf::Vector2f(x.t[0].x, x.t[0].y);
 				trigle[1].texCoords = sf::Vector2f(x.t[1].x, x.t[1].y);

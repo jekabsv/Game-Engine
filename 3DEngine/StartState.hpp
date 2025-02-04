@@ -66,6 +66,6 @@ namespace game
 		sf::Color Background[9];
 
 		int vcameraFinal = 0;
-
+		bool SwitchPlayers;
 	};
 }

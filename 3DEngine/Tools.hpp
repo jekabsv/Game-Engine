@@ -60,7 +60,7 @@ namespace game
 		int TriangleClipAgainstPlane(vec3d plane_p, vec3d plane_n, triangle& in_tri, triangle& out_tri1, triangle& out_tri2);
 		bool CameraClipp(mesh& meshToClipp, vec3d& vCamera, vec3d& vLookDir, vec3d vLight, mat4x4& matView, mat4x4& matProj, mesh& MeshClipped);
 		bool UpdateCamera(float& fYaw, float& fPitch, vec3d& vCamera, vec3d& vLookDir, mat4x4& matView);
-		bool ClipNDraw(mesh meshToDraw, sf::RenderWindow& window, std::map<std::string, sf::Texture> &textures);
+		bool ClipNDraw(mesh meshToDraw, sf::RenderWindow& window, std::map<std::string, sf::Texture>& textures, int Transparency);
 		void LookAtCamera(vec3d& objPos, vec3d& vCamera, float& fYaw, float& fPitch);
 		int Random(int from, int to);
 	};

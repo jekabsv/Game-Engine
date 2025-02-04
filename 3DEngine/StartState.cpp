@@ -26,6 +26,7 @@ namespace game
 	}
 	void StartState::Init()
 	{
+        SwitchPlayers = 0;
         vcameraFinal = 75;
         Background[0] = sf::Color(20, 20, 20);
         Background[1] = sf::Color(45, 30, 30);
@@ -54,6 +55,7 @@ namespace game
 
             locationCoordinates[i].x = x;
             locationCoordinates[i].z = y;
+            locationCoordinates[i].y = -150*i;
         }
 
 
@@ -69,8 +71,10 @@ namespace game
 		//_data->tools.AddCube(-0.5f, -0.5f, -0.5f, 0.5f, 0.5f, 0.5f, _mesh);
         std::vector <std::string> texturesNames;
 
-        _data->AssetManager.LoadTexture("Rectangle", "../../Resources/LimboCard1.png");
-        Card.setTexture(_data->AssetManager.GetTexture("Rectangle"));
+        _data->AssetManager.LoadTexture("LimboCard1", "../../Resources/LimboCard1.png");
+        _data->AssetManager.LoadTexture("FraudCard1", "../../Resources/FraudCard1.png");
+        _data->AssetManager.LoadTexture("LustCard1", "../../Resources/LustCard1.png");
+        Card.setTexture(_data->AssetManager.GetTexture("LimboCard1"));
         Card.setScale(1, 1);
         Card.setOrigin(Card.getGlobalBounds().width/2, Card.getGlobalBounds().height/2);
         Card.setPosition(960, 540);
@@ -225,6 +229,38 @@ namespace game
         {
             CameraYv += 4.0f;
         }
+        if (_data->inputManager.IsSpriteClicked(icon[0], sf::Mouse::Left, _data->window) && SwitchPlayers)
+        {
+            if (PlayerToMove != 0)
+            {
+                int loc = players[PlayerToMove].location;
+                players[PlayerToMove].location = players[0].location;
+                players[0].location = loc;
+                SwitchPlayers = 0;
+            }
+        }
+        if (_data->inputManager.IsSpriteClicked(icon[1], sf::Mouse::Left, _data->window) && SwitchPlayers)
+        {
+            if (PlayerToMove != 1)
+            {
+                int loc = players[PlayerToMove].location;
+                players[PlayerToMove].location = players[2].location;
+                players[2].location = loc;
+                SwitchPlayers = 0;
+            }
+        }
+        if (_data->inputManager.IsSpriteClicked(icon[2], sf::Mouse::Left, _data->window) && SwitchPlayers)
+        {
+            if (PlayerToMove != 2)
+            {
+                int loc = players[PlayerToMove].location;
+                players[PlayerToMove].location = players[2].location;
+                players[2].location = loc;
+                SwitchPlayers = 0;
+            }
+        }
+
+
 		while (_data->window.pollEvent(event))
 		{
 			if (sf::Event::Closed == event.type)
@@ -240,7 +276,7 @@ namespace game
             if (event.type == sf::Event::MouseButtonPressed)
             {
                 if (_data->inputManager.IsSpriteClicked(RollButton, sf::Mouse::Left, _data->window) && RollCooldown.getElapsedTime().asSeconds() > 0.5 
-                    && !players[PlayerToMove].ToMove && !DrawCard)
+                    && !players[PlayerToMove].ToMove && !DrawCard && !SwitchPlayers)
                 {
                     RollCooldown.restart();
                     PlayerToMove++;
@@ -342,7 +378,7 @@ namespace game
 
 
         players[PlayerToMove].location = players[PlayerToMove].location % 20;
-        if (moveclock.getElapsedTime().asSeconds() > 0.01 && !players[PlayerToMove].ToMove)
+        if (moveclock.getElapsedTime().asSeconds() > 0.3 && !players[PlayerToMove].ToMove)
         {
             if(level == 0)
             {
@@ -356,7 +392,7 @@ namespace game
             
             
         }
-        if (moveclock.getElapsedTime().asSeconds() > 0.01 && players[PlayerToMove].ToMove)
+        if (moveclock.getElapsedTime().asSeconds() > 0.3 && players[PlayerToMove].ToMove)
         {
             moveclock.restart();
             players[PlayerToMove].location++;
@@ -367,6 +403,26 @@ namespace game
                 players[PlayerToMove].location == 12 || players[PlayerToMove].location == 16 || players[PlayerToMove].location == 18) && !players[PlayerToMove].ToMove && level == 0)
             {
                 DrawCard = 1;
+                int k = _data->tools.Random(0, 2);
+                if (k == 0)
+                {
+                    Card.setTexture(_data->AssetManager.GetTexture("LimboCard1"));
+                    playersToSkip[PlayerToMove] = 1;
+                }
+                if (k == 1)
+                {
+                    Card.setTexture(_data->AssetManager.GetTexture("LustCard1"));
+                    players[PlayerToMove].location -= 2;
+                    if (players[PlayerToMove].location < 0)
+                        players[PlayerToMove].location = 0;
+                    players[PlayerToMove].location %= 20;
+                }
+                if (k == 2)
+                {
+                    Card.setTexture(_data->AssetManager.GetTexture("FraudCard1"));
+                    SwitchPlayers = 1;
+                }
+
             }
             if (players[PlayerToMove].location == 19 && !players[PlayerToMove].ToMove)
             {
@@ -417,7 +473,11 @@ namespace game
 
         mat4x4 matView;
 
-        mesh ObjToClipp, ObjToDraw;
+        mesh Player1ToClipp, Player1ToDraw;
+        mesh Player2ToClipp, Player2ToDraw;
+        mesh Player3ToClipp, Player3ToDraw;
+
+
         mesh TerrainToClipp, TerrainToDraw;
         mesh TerrainToClipp2, TerrainToDraw2;
 
@@ -446,21 +506,43 @@ namespace game
 
 
 
-        _data->tools.TransformObj(fThetax - 1.57079632679, 3.14159265358767, fThetaz, locationCoordinates[players[PlayerToMove].location].x, locationCoordinates[players[PlayerToMove].location].y, locationCoordinates[players[PlayerToMove].location].z, 0.3, 0.3, 0.3, players[PlayerToMove].Obj, ObjToClipp);
+        _data->tools.TransformObj(fThetax - 1.57079632679, 3.14159265358767, fThetaz, locationCoordinates[players[0].location].x,
+            locationCoordinates[level].y, locationCoordinates[players[0].location].z, 0.3, 0.3, 0.3, players[0].Obj, Player1ToClipp);
+        _data->tools.TransformObj(fThetax - 1.57079632679, 3.14159265358767, fThetaz, locationCoordinates[players[1].location].x,
+            locationCoordinates[level].y, locationCoordinates[players[1].location].z, 0.3, 0.3, 0.3, players[1].Obj, Player2ToClipp);
+        _data->tools.TransformObj(fThetax - 1.57079632679, 3.14159265358767, fThetaz, locationCoordinates[players[2].location].x,
+            locationCoordinates[level].y, locationCoordinates[players[2].location].z, 0.3, 0.3, 0.3, players[2].Obj, Player3ToClipp);
+
+
         _data->tools.TransformObj(-1.57079632679, 0, 0, 0, 0, 0, 1, 1, 1, Levels[level], TerrainToClipp);
         _data->tools.TransformObj(-1.57079632679, 0, 0, 0, -150, 0, 1, 1, 1, Levels[level], TerrainToClipp2);
 
-        _data->tools.CameraClipp(ObjToClipp, vCamera, vLookDir, vLookDir, matView, matProj, ObjToDraw);
+        _data->tools.CameraClipp(Player1ToClipp, vCamera, vLookDir, vLookDir, matView, matProj, Player1ToDraw);
+        _data->tools.CameraClipp(Player2ToClipp, vCamera, vLookDir, vLookDir, matView, matProj, Player2ToDraw);
+        _data->tools.CameraClipp(Player3ToClipp, vCamera, vLookDir, vLookDir, matView, matProj, Player3ToDraw);
+
         _data->tools.CameraClipp(TerrainToClipp, vCamera, vLookDir, vLight, matView, matProj, TerrainToDraw);
         _data->tools.CameraClipp(TerrainToClipp2, vCamera, vLookDir, vLight, matView, matProj, TerrainToDraw2);
         
-        std::sort(ObjToDraw.tris.begin(), ObjToDraw.tris.end(), CompareByAverageZ);
+        std::sort(Player1ToDraw.tris.begin(), Player1ToDraw.tris.end(), CompareByAverageZ);
+        std::sort(Player2ToDraw.tris.begin(), Player2ToDraw.tris.end(), CompareByAverageZ);
+        std::sort(Player3ToDraw.tris.begin(), Player3ToDraw.tris.end(), CompareByAverageZ);
+
         std::sort(TerrainToDraw.tris.begin(), TerrainToDraw.tris.end(), CompareByAverageZ);
         std::sort(TerrainToDraw2.tris.begin(), TerrainToDraw2.tris.end(), CompareByAverageZ);
 
-        _data->tools.ClipNDraw(TerrainToDraw2, _data->window, _data->AssetManager._textures);
-        _data->tools.ClipNDraw(TerrainToDraw, _data->window, _data->AssetManager._textures);
-        _data->tools.ClipNDraw(ObjToDraw, _data->window, _data->AssetManager._textures);
+        _data->tools.ClipNDraw(TerrainToDraw2, _data->window, _data->AssetManager._textures, 255);
+        _data->tools.ClipNDraw(TerrainToDraw, _data->window, _data->AssetManager._textures, 255);
+
+        if(PlayerToMove == 0)
+            _data->tools.ClipNDraw(Player1ToDraw, _data->window, _data->AssetManager._textures, 255);
+        else _data->tools.ClipNDraw(Player1ToDraw, _data->window, _data->AssetManager._textures, 122);
+        if (PlayerToMove == 1)
+            _data->tools.ClipNDraw(Player2ToDraw, _data->window, _data->AssetManager._textures, 255);
+        else _data->tools.ClipNDraw(Player2ToDraw, _data->window, _data->AssetManager._textures, 122);
+        if(PlayerToMove == 2)
+             _data->tools.ClipNDraw(Player3ToDraw, _data->window, _data->AssetManager._textures, 255);
+        else _data->tools.ClipNDraw(Player3ToDraw, _data->window, _data->AssetManager._textures, 122);
     }
 
 
@@ -478,12 +560,32 @@ namespace game
         _data->window.draw(players[0].pointsTxt);
         _data->window.draw(players[1].pointsTxt);
         _data->window.draw(players[2].pointsTxt);
+
         _data->window.draw(icon[0]);
         _data->window.draw(icon[1]);
         _data->window.draw(icon[2]);
         _data->window.draw(border);
         if(DrawCard)
             _data->window.draw(Card);
+
+        border.setOutlineColor(sf::Color::Red);
+        if (playersToSkip[0])
+        {
+            border.setPosition(icon[0].getPosition().x, 70);
+            _data->window.draw(border);
+        }
+        if (playersToSkip[1])
+        {
+            border.setPosition(icon[1].getPosition().x, 70);
+            _data->window.draw(border);
+        }
+        if (playersToSkip[2])
+        {
+            border.setPosition(icon[2].getPosition().x, 70);
+            _data->window.draw(border);
+        }
+
+
 		_data->window.draw(LevelTxt);
         _data->window.draw(rollNumber);
         _data->window.draw(RollButton);
