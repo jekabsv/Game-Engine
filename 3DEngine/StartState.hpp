@@ -56,7 +56,7 @@ namespace game
 		sf::Clock RollCooldown;
 		int PlayerToMove;
 		player players[3];
-		bool playersToSkip[3];
+		int playersToSkip[3];
 		sf::Sprite Card;
 		bool DrawCard;
 		mesh Levels[9];
@@ -69,7 +69,9 @@ namespace game
 		bool SwitchPlayers, RollCheck, skipOtherPlayer;
 		int cardRolled;
 
-		bool NextMoveTwice[3];
+		int NextMoveTwice[3];
+		int NoBonuses[3];
+		int NoPunishments[3];
 
 	};
 }
