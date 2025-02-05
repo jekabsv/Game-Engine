@@ -66,6 +66,10 @@ namespace game
 		sf::Color Background[9];
 
 		int vcameraFinal = 0;
-		bool SwitchPlayers;
+		bool SwitchPlayers, RollCheck, skipOtherPlayer;
+		int cardRolled;
+
+		bool NextMoveTwice[3];
+
 	};
 }

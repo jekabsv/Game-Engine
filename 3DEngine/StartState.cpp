@@ -26,6 +26,11 @@ namespace game
 	}
 	void StartState::Init()
 	{
+        NextMoveTwice[0] = 0;
+        NextMoveTwice[1] = 0;
+        NextMoveTwice[2] = 0;
+        skipOtherPlayer = 0;
+        RollCheck = 0;
         SwitchPlayers = 0;
         vcameraFinal = 75;
         Background[0] = sf::Color(20, 20, 20);
@@ -37,6 +42,7 @@ namespace game
         PlayerToMove = 2;
         OnGround = false;
         CameraPos2d = _data->inputManager.GetMousePosition(_data->window);
+
         playersToSkip[0] = 0;
         playersToSkip[1] = 0;
         playersToSkip[2] = 0;
@@ -71,9 +77,26 @@ namespace game
 		//_data->tools.AddCube(-0.5f, -0.5f, -0.5f, 0.5f, 0.5f, 0.5f, _mesh);
         std::vector <std::string> texturesNames;
 
-        _data->AssetManager.LoadTexture("LimboCard1", "../../Resources/LimboCard1.png");
+        /*_data->AssetManager.LoadTexture("LimboCard1", "../../Resources/LimboCard1.png");
         _data->AssetManager.LoadTexture("FraudCard1", "../../Resources/FraudCard1.png");
-        _data->AssetManager.LoadTexture("LustCard1", "../../Resources/LustCard1.png");
+        _data->AssetManager.LoadTexture("LustCard1", "../../Resources/LustCard1.png");*/
+
+        _data->AssetManager.LoadTexture("LimboCard1", "../../Resources/Cards/LimboCard1.png");
+        _data->AssetManager.LoadTexture("LimboCard2", "../../Resources/Cards/LimboCard2.png");
+        _data->AssetManager.LoadTexture("LimboCard3", "../../Resources/Cards/LimboCard3.png");
+        _data->AssetManager.LoadTexture("LimboCard4", "../../Resources/Cards/LimboCard4.png");
+
+
+        _data->AssetManager.LoadTexture("LustCard1", "../../Resources/Cards/LustCard1.png");
+        _data->AssetManager.LoadTexture("LustCard2", "../../Resources/Cards/LustCard2.png");
+        _data->AssetManager.LoadTexture("LustCard3", "../../Resources/Cards/LustCard3.png");
+
+        _data->AssetManager.LoadTexture("GluttonyCard1", "../../Resources/Cards/GluttonyCard1.png");
+        _data->AssetManager.LoadTexture("GluttonyCard2", "../../Resources/Cards/GluttonyCard2.png");
+        _data->AssetManager.LoadTexture("GluttonyCard3", "../../Resources/Cards/GluttonyCard3.png");
+        _data->AssetManager.LoadTexture("GluttonyCard4", "../../Resources/Cards/GluttonyCard4.png");
+
+
         Card.setTexture(_data->AssetManager.GetTexture("LimboCard1"));
         Card.setScale(1, 1);
         Card.setOrigin(Card.getGlobalBounds().width/2, Card.getGlobalBounds().height/2);
@@ -229,34 +252,67 @@ namespace game
         {
             CameraYv += 4.0f;
         }
-        if (_data->inputManager.IsSpriteClicked(icon[0], sf::Mouse::Left, _data->window) && SwitchPlayers)
+        if (_data->inputManager.IsSpriteClicked(icon[0], sf::Mouse::Left, _data->window))
         {
-            if (PlayerToMove != 0)
+            if(SwitchPlayers)
             {
-                int loc = players[PlayerToMove].location;
-                players[PlayerToMove].location = players[0].location;
-                players[0].location = loc;
-                SwitchPlayers = 0;
+                if (PlayerToMove != 0)
+                {
+                    int loc = players[PlayerToMove].location;
+                    players[PlayerToMove].location = players[0].location;
+                    players[0].location = loc;
+                    SwitchPlayers = 0;
+                }
+            }
+            if (skipOtherPlayer)
+            {
+                if (PlayerToMove != 0)
+                {
+                    skipOtherPlayer = 0;
+                    playersToSkip[0] = 1;
+                }
             }
         }
-        if (_data->inputManager.IsSpriteClicked(icon[1], sf::Mouse::Left, _data->window) && SwitchPlayers)
+        if (_data->inputManager.IsSpriteClicked(icon[1], sf::Mouse::Left, _data->window))
         {
-            if (PlayerToMove != 1)
+            if (SwitchPlayers)
             {
-                int loc = players[PlayerToMove].location;
-                players[PlayerToMove].location = players[2].location;
-                players[2].location = loc;
-                SwitchPlayers = 0;
+                if (PlayerToMove != 1)
+                {
+                    int loc = players[PlayerToMove].location;
+                    players[PlayerToMove].location = players[2].location;
+                    players[2].location = loc;
+                    SwitchPlayers = 0;
+                }
+            }
+            if (skipOtherPlayer)
+            {
+                if (PlayerToMove != 1)
+                {
+                    skipOtherPlayer = 0;
+                    playersToSkip[1] = 1;
+                }
             }
         }
-        if (_data->inputManager.IsSpriteClicked(icon[2], sf::Mouse::Left, _data->window) && SwitchPlayers)
+        if (_data->inputManager.IsSpriteClicked(icon[2], sf::Mouse::Left, _data->window))
         {
-            if (PlayerToMove != 2)
+            if (SwitchPlayers)
             {
-                int loc = players[PlayerToMove].location;
-                players[PlayerToMove].location = players[2].location;
-                players[2].location = loc;
-                SwitchPlayers = 0;
+                if (PlayerToMove != 2)
+                {
+                    int loc = players[PlayerToMove].location;
+                    players[PlayerToMove].location = players[2].location;
+                    players[2].location = loc;
+                    SwitchPlayers = 0;
+                }
+            }
+            if (skipOtherPlayer)
+            {
+                if (PlayerToMove != 2)
+                {
+                    skipOtherPlayer = 0;
+                    playersToSkip[2] = 1;
+                }
             }
         }
 
@@ -276,14 +332,14 @@ namespace game
             if (event.type == sf::Event::MouseButtonPressed)
             {
                 if (_data->inputManager.IsSpriteClicked(RollButton, sf::Mouse::Left, _data->window) && RollCooldown.getElapsedTime().asSeconds() > 0.5 
-                    && !players[PlayerToMove].ToMove && !DrawCard && !SwitchPlayers)
+                    && !players[PlayerToMove].ToMove && !DrawCard && !SwitchPlayers && !RollCheck && !skipOtherPlayer)
                 {
                     RollCooldown.restart();
                     PlayerToMove++;
                     PlayerToMove = PlayerToMove % 3;
                     while(playersToSkip[PlayerToMove])
                     {
-                        //Skip Tex
+                        //Skip Text
                         playersToSkip[PlayerToMove] = 0;
                         PlayerToMove++;
                         PlayerToMove = PlayerToMove % 3;
@@ -306,6 +362,31 @@ namespace game
                     //location += k;
                     players[PlayerToMove].ToMove = k;
                     rollNumber.setString(std::to_string(k));
+                }
+                if (_data->inputManager.IsSpriteClicked(RollButton, sf::Mouse::Left, _data->window)
+                    && !DrawCard && RollCheck)
+                {
+                    RollCheck = 0;
+                    int k;
+                    k = _data->tools.Random(1, 6);
+                    if (k > 3)
+                    {
+                        if (cardRolled / 10 == 0 && cardRolled % 10 == 1)
+                        {
+                            PlayerToMove--;
+                            if (PlayerToMove < 0)
+                            {
+                                PlayerToMove = 2;
+                            }
+                        }
+                    }
+                    if (k < 4)
+                    {
+                        if (cardRolled / 10 == 0 && cardRolled % 10 == 1)
+                        {
+
+                        }
+                    }
                 }
                 if (_data->inputManager.IsSpriteClicked(Card, sf::Mouse::Left, _data->window) && DrawCard)
                 {
@@ -364,7 +445,6 @@ namespace game
 	}
     void StartState::Update(float dt)
     {
-
         //std::cout << vcameraFinal << ' ';
         /*if (vCamera.y > vcameraFinal)
         {
@@ -403,8 +483,84 @@ namespace game
                 players[PlayerToMove].location == 12 || players[PlayerToMove].location == 16 || players[PlayerToMove].location == 18) && !players[PlayerToMove].ToMove && level == 0)
             {
                 DrawCard = 1;
-                int k = _data->tools.Random(0, 2);
+                int k = _data->tools.Random(2, 2);
                 if (k == 0)
+                {
+                    int c = _data->tools.Random(0, 3);
+                    cardRolled = 10 * k + c;
+                    if (c == 0)
+                    {
+                        Card.setTexture(_data->AssetManager.GetTexture("LimboCard1"));
+                        players[PlayerToMove].location += 2;
+                        players[PlayerToMove].location %= 20;
+                    }
+                    if (c == 1)
+                    {
+                        Card.setTexture(_data->AssetManager.GetTexture("LimboCard2"));
+                        RollCheck = 1;
+                    }
+                    if (c == 2)
+                    {
+                        Card.setTexture(_data->AssetManager.GetTexture("LimboCard3"));
+                        playersToSkip[PlayerToMove] = 1;
+                    }
+                    if (c == 3)
+                    {
+                        Card.setTexture(_data->AssetManager.GetTexture("LimboCard4"));
+                        skipOtherPlayer = 1;
+                    }
+                }
+                if (k == 1)
+                {
+                    int c = _data->tools.Random(0, 2);
+                    cardRolled = 10 * k + c;
+                    if (c == 0)
+                    {
+                        Card.setTexture(_data->AssetManager.GetTexture("LustCard1"));
+                        skipOtherPlayer = 1;
+                    }
+                    if (c == 1)
+                    {
+                        Card.setTexture(_data->AssetManager.GetTexture("LustCard2"));
+                        PlayerToMove--;
+                        if (PlayerToMove < 0)
+                            PlayerToMove = 2;
+                    }
+                    if (c == 2)
+                    {
+                        Card.setTexture(_data->AssetManager.GetTexture("LustCard3"));
+                        players[PlayerToMove].location -= 2;
+                        if (players[PlayerToMove].location < 0)
+                            players[PlayerToMove].location = 0;
+                    }
+                }
+                if (k == 2)
+                {
+                    int c = _data->tools.Random(0, 0);
+                    cardRolled = 10 * k + c;
+                    if (c == 0)
+                    {
+                        Card.setTexture(_data->AssetManager.GetTexture("GluttonyCard1"));
+                        NextMoveTwice[PlayerToMove] = 1;
+                    }
+                    if (c == 1)
+                    {
+                        Card.setTexture(_data->AssetManager.GetTexture("GluttonyCard1"));
+                        NextMoveTwice[PlayerToMove] = 1;
+                    }
+                    if (c == 2)
+                    {
+                        Card.setTexture(_data->AssetManager.GetTexture("GluttonyCard1"));
+                        NextMoveTwice[PlayerToMove] = 1;
+                    }
+                    if (c == 3)
+                    {
+                        Card.setTexture(_data->AssetManager.GetTexture("GluttonyCard1"));
+                        NextMoveTwice[PlayerToMove] = 1;
+                    }
+                }
+
+                /*if (k == 0)
                 {
                     Card.setTexture(_data->AssetManager.GetTexture("LimboCard1"));
                     playersToSkip[PlayerToMove] = 1;
@@ -421,7 +577,7 @@ namespace game
                 {
                     Card.setTexture(_data->AssetManager.GetTexture("FraudCard1"));
                     SwitchPlayers = 1;
-                }
+                }*/
 
             }
             if (players[PlayerToMove].location == 19 && !players[PlayerToMove].ToMove)
@@ -435,6 +591,15 @@ namespace game
                 players[PlayerToMove].pointsTxt.setString(std::to_string(players[PlayerToMove].points));
             }
         }
+       /* if (NextMoveTwice[PlayerToMove])
+        {
+            PlayerToMove--;
+            if (PlayerToMove < 0)
+                PlayerToMove = 2;
+            NextMoveTwice[PlayerToMove] = 0;
+        }*/
+
+
 
         if (nrFinished == 3)
         {
