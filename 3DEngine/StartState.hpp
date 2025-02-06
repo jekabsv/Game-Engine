@@ -31,47 +31,29 @@ namespace game
 		void Resume() override;
 	private:
 		GameDataRef _data;
-		sf::Clock clock;
-		mesh Terrain;
-		float fThetax;
-		float fThetay;
-		float fThetaz;
+		sf::Clock clock, moveclock, RollCooldown;
 		mat4x4 matProj;
+		float fThetax, fThetay, fThetaz;
 		float fYaw = 1.57079632679f;   // Yaw (left/right rotation)
 		float fPitch = 0.0f; // Pitch (up/down rotation)
-		vec3d vCamera;
 		float CameraYv = 0.0f;
 		sf::Texture texture;
-		vec3d vLookDir;
-		bool WPressed, SPressed, APressed, DPressed, SpacePressed, OnGround, hidden;
+		vec3d vLookDir, vCamera;
+		bool WPressed, SPressed, APressed, DPressed, SpacePressed, OnGround, hidden, DrawCard;
+		bool SwitchPlayers, RollCheck, skipOtherPlayer, InfoOpen, ReadyToRoll;
 		sf::Vector2i CameraPos2d;
-		sf::Text LevelTxt;
-		int level;
-		sf::Sprite RollButton;
-		sf::Text rollNumber;
-		vec3d locationCoordinates[20];
-		sf::Clock moveclock;
-		
-		bool ReadyToRoll;
-		sf::Clock RollCooldown;
-		int PlayerToMove;
-		player players[3];
-		int playersToSkip[3];
-		sf::Sprite Card;
-		bool DrawCard;
-		mesh Levels[9];
-		int nrFinished = 0;
-
+		sf::Sprite RollButton, InfoButton, InfoScreen, Card;
 		sf::Sprite icon[3];
+		sf::Text rollNumber, LevelTxt;
+		vec3d locationCoordinates[20];
+		player players[3];
+		mesh Levels[9];
 		sf::Color Background[9];
-
-		int vcameraFinal = 0;
-		bool SwitchPlayers, RollCheck, skipOtherPlayer;
-		int cardRolled;
-
+		int vcameraFinal, cardRolled, PlayerToMove, nrFinished, level;
+		int playersToSkip[3];
 		int NextMoveTwice[3];
 		int NoBonuses[3];
 		int NoPunishments[3];
-
+		std::string InfoScreenPaths[9], LevelNames[9];
 	};
 }
