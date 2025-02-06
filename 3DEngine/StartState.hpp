@@ -57,5 +57,7 @@ namespace game
 		int NoPunishments[3];
 		std::string InfoScreenPaths[10], LevelNames[10];
 		sf::RectangleShape Effects[10];
+
+		sf::Color BaclgroundColor;
 	};
 }

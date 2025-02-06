@@ -25,6 +25,7 @@ namespace game
 	}
 	void StartState::Init()
 	{
+        BaclgroundColor = sf::Color(0, 0, 0);
         Effects[1].setFillColor(sf::Color(100, 100, 100, 70));
         Effects[0].setFillColor(sf::Color(25, 10, 10, 70));
         Effects[2].setFillColor(sf::Color(50, 50, 50, 70));
@@ -43,6 +44,12 @@ namespace game
         LevelNames[1] = "Kaisle";
         LevelNames[2] = "Negausiba";
         LevelNames[3] = "Skopums";
+        LevelNames[4] = "Dusmas";
+        LevelNames[5] = "keceriba";
+        LevelNames[6] = "vardarbiba";
+        LevelNames[7] = "Krapnieciba";
+        LevelNames[8] = "Nodeviba";
+
         skipOtherPlayer = 0;
         RollCheck = 0;
         SwitchPlayers = 0;
@@ -51,6 +58,10 @@ namespace game
         Background[1] = sf::Color(45, 30, 30);
         Background[2] = sf::Color(70, 35, 25);
         Background[3] = sf::Color(180, 150, 0);
+        Background[4] = sf::Color(133, 22, 9);
+        Background[5] = sf::Color(33, 7, 4);
+        Background[6] = sf::Color(0, 0, 0);
+        Background[7] = sf::Color(100, 122, 100);
         Background[8] = sf::Color(245, 245, 255);
 
 
@@ -150,6 +161,8 @@ namespace game
         _data->AssetManager.LoadTexture("GreedInfo", "../../Resources/GreedInfo.png");
         _data->AssetManager.LoadTexture("WrathInfo", "../../Resources/WrathInfo.png");
         _data->AssetManager.LoadTexture("HeresyInfo", "../../Resources/HeresyInfo.png");
+        _data->AssetManager.LoadTexture("ViolenceInfo", "../../Resources/ViolenceInfo.png");
+        _data->AssetManager.LoadTexture("8thInfo", "../../Resources/8thInfo.png");
         _data->AssetManager.LoadTexture("BetrayalInfo", "../../Resources/BetrayalInfo.png");
 
         _data->AssetManager.LoadTexture("InfoButton", "../../Resources/InfoButton.png");
@@ -172,6 +185,8 @@ namespace game
         InfoScreenPaths[3] = "GreedInfo";
         InfoScreenPaths[4] = "WrathInfo";
         InfoScreenPaths[5] = "HeresyInfo";
+        InfoScreenPaths[6] = "ViolenceInfo";
+        InfoScreenPaths[7] = "8thInfo";
         InfoScreenPaths[8] = "BetrayalInfo";
 
 
@@ -204,7 +219,7 @@ namespace game
         LevelTxt.setFont(_data->AssetManager.GetFont("MainFont"));
         LevelTxt.setString("LIMBO");
         LevelTxt.setScale(3, 3);
-        LevelTxt.setPosition(1400, 50);
+        LevelTxt.setPosition(1350, 50);
 
         players[0].pointsTxt.setFont(_data->AssetManager.GetFont("Numbers"));
         players[0].pointsTxt.setString("0");
@@ -246,6 +261,12 @@ namespace game
         Levels[5].ReadOBJ("../../Resources/Heresy.obj", texturesNames);
         for (std::string s : texturesNames)
             _data->AssetManager.LoadTextureMTL(s, "../../Resources/Heresy.mtl");
+        Levels[6].ReadOBJ("../../Resources/Violence.obj", texturesNames);
+        for (std::string s : texturesNames)
+            _data->AssetManager.LoadTextureMTL(s, "../../Resources/Violence.mtl");
+        Levels[7].ReadOBJ("../../Resources/8th.obj", texturesNames);
+        for (std::string s : texturesNames)
+            _data->AssetManager.LoadTextureMTL(s, "../../Resources/8th.mtl");
         Levels[8].ReadOBJ("../../Resources/Betrayal.obj", texturesNames);
         for (std::string s : texturesNames)
             _data->AssetManager.LoadTextureMTL(s, "../../Resources/Betrayal.mtl");
@@ -664,6 +685,7 @@ namespace game
         DrawCard = 1;
         Card.setTexture(_data->AssetManager.GetTexture("CardPlaceHolder"));
         int k = _data->tools.Random(0, 8);
+        k = level;
         if (k == 0)
         {
             int c = _data->tools.Random(0, 3);
@@ -672,7 +694,9 @@ namespace game
             {
                 Card.setTexture(_data->AssetManager.GetTexture("LimboCard1"));
                 players[PlayerToMove].location += 2;
-                players[PlayerToMove].location %= 20;
+                if (players[PlayerToMove].location > 19)
+                    players[PlayerToMove].location = 19;
+                //players[PlayerToMove].location %= 20;
             }
             if (c == 1)
             {
@@ -739,7 +763,9 @@ namespace game
             {
                 Card.setTexture(_data->AssetManager.GetTexture("GluttonyCard4"));
                 players[PlayerToMove].location += 2;
-                players[PlayerToMove].location %= 20;
+                if (players[PlayerToMove].location > 19)
+                    players[PlayerToMove].location = 19;
+                //players[PlayerToMove].location %= 20;
             }
         }
         if (k == 3)
@@ -769,7 +795,9 @@ namespace game
             {
                 Card.setTexture(_data->AssetManager.GetTexture("GreedCard4"));
                 players[PlayerToMove].location += 3;
-                players[PlayerToMove].location %= 20;
+                if (players[PlayerToMove].location > 19)
+                    players[PlayerToMove].location = 19;
+                //players[PlayerToMove].location %= 20;
             }
         }
         if (k == 4)
@@ -799,7 +827,9 @@ namespace game
                 if (PlayerToMove == 1)
                     locmax = std::max(players[1].location, players[0].location);
                 locmax++;
-                locmax %= 20;
+                if (locmax > 19)
+                    locmax = 19;
+                //locmax %= 20;
                 if (players[PlayerToMove].location < locmax)
                     players[PlayerToMove].location = locmax;
             }
@@ -807,7 +837,9 @@ namespace game
             {
                 Card.setTexture(_data->AssetManager.GetTexture("WrathCard4"));
                 players[PlayerToMove].location += 2;
-                players[PlayerToMove].location %= 20;
+                if (players[PlayerToMove].location > 19)
+                    players[PlayerToMove].location = 19;
+                //players[PlayerToMove].location %= 20;
             }
         }
         if (k == 5)
@@ -818,7 +850,9 @@ namespace game
             {
                 Card.setTexture(_data->AssetManager.GetTexture("HeresyCard1"));
                 players[PlayerToMove].location += 2;
-                players[PlayerToMove].location %= 20;
+                if (players[PlayerToMove].location > 19)
+                    players[PlayerToMove].location = 19;
+                //players[PlayerToMove].location %= 20;
             }
             if (c == 1 && !NoPunishments[PlayerToMove])
             {
@@ -844,7 +878,9 @@ namespace game
             {
                 Card.setTexture(_data->AssetManager.GetTexture("ViolenceCard1"));
                 players[PlayerToMove].location += 4;
-                players[PlayerToMove].location %= 20;
+                if (players[PlayerToMove].location > 19)
+                    players[PlayerToMove].location = 19;
+                //players[PlayerToMove].location %= 20;
             }
             if (c == 1 && !NoPunishments[PlayerToMove])
             {
@@ -904,7 +940,9 @@ namespace game
             {
                 Card.setTexture(_data->AssetManager.GetTexture("BetrayalCard2"));
                 players[PlayerToMove].location += 3;
-                players[PlayerToMove].location %= 20;
+                if (players[PlayerToMove].location > 19)
+                    players[PlayerToMove].location = 19;
+                //players[PlayerToMove].location %= 20;
             }
             if (c == 2)
             {
@@ -920,7 +958,20 @@ namespace game
     }
     void StartState::Update(float dt)
     {
-        
+        if (BaclgroundColor.r < Background[level].r)
+            BaclgroundColor.r++;
+        if (BaclgroundColor.r > Background[level].r)
+            BaclgroundColor.r--;
+
+        if (BaclgroundColor.g < Background[level].g)
+            BaclgroundColor.g++;
+        if (BaclgroundColor.g > Background[level].g)
+            BaclgroundColor.g--;
+
+        if (BaclgroundColor.b < Background[level].b)
+            BaclgroundColor.b++;
+        if (BaclgroundColor.b > Background[level].b)
+            BaclgroundColor.b--;
 
         LevelTxt.setString(LevelNames[level]);
 
@@ -1059,8 +1110,9 @@ namespace game
 
             }
 
-            if (players[PlayerToMove].location == 19 && !players[PlayerToMove].ToMove)
+            if (players[PlayerToMove].location == 19)
             {
+                players[PlayerToMove].ToMove = 0;
                 if (nrFinished == 0)
                     players[PlayerToMove].points += 2;
                 else if (nrFinished == 1)
@@ -1178,7 +1230,7 @@ namespace game
         std::sort(TerrainToDraw.tris.begin(), TerrainToDraw.tris.end(), CompareByAverageZ);
         std::sort(TerrainToDraw2.tris.begin(), TerrainToDraw2.tris.end(), CompareByAverageZ);
         
-        _data->window.clear(Background[level]);
+        _data->window.clear(BaclgroundColor);
 
         _data->tools.ClipNDraw(TerrainToDraw2, _data->window, _data->AssetManager._textures, 255);
         _data->tools.ClipNDraw(TerrainToDraw, _data->window, _data->AssetManager._textures, 255);
@@ -1204,7 +1256,7 @@ namespace game
         border.setFillColor(sf::Color(0, 0, 0, 0));
         border.setOutlineThickness(3);
         border.setOutlineColor(sf::Color(255, 255, 255));
-
+        _data->window.draw(Effects[level]);
 
         _data->window.draw(players[0].pointsTxt);
         _data->window.draw(players[1].pointsTxt);
@@ -1238,7 +1290,7 @@ namespace game
 		
         if (DebugMode)
             _data->window.draw(Debug);
-        _data->window.draw(Effects[level]);
+        
         _data->window.draw(LevelTxt);
         _data->window.draw(InfoButton);
         _data->window.draw(rollNumber);
