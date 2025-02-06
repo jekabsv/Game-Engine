@@ -29,6 +29,7 @@ namespace game
 		void Draw(float dt) override;
 		void Pause() override;
 		void Resume() override;
+		void ChooseCard();
 	private:
 		GameDataRef _data;
 		sf::Clock clock, moveclock, RollCooldown;
@@ -44,16 +45,17 @@ namespace game
 		sf::Vector2i CameraPos2d;
 		sf::Sprite RollButton, InfoButton, InfoScreen, Card;
 		sf::Sprite icon[3];
-		sf::Text rollNumber, LevelTxt;
+		sf::Text rollNumber, LevelTxt, Debug;
 		vec3d locationCoordinates[20];
 		player players[3];
-		mesh Levels[9];
-		sf::Color Background[9];
+		mesh Levels[10];
+		sf::Color Background[10];
 		int vcameraFinal, cardRolled, PlayerToMove, nrFinished, level;
 		int playersToSkip[3];
 		int NextMoveTwice[3];
 		int NoBonuses[3];
 		int NoPunishments[3];
-		std::string InfoScreenPaths[9], LevelNames[9];
+		std::string InfoScreenPaths[10], LevelNames[10];
+		sf::RectangleShape Effects[10];
 	};
 }

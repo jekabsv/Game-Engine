@@ -6,7 +6,7 @@ namespace game
 {
 	Game::Game(int width, int height, std::string title)
 	{
-		_data->window.create(sf::VideoMode(width, height), title, sf::Style::Fullscreen);
+		_data->window.create(sf::VideoMode(width, height), title);
 		_data->window.setMouseCursorVisible(0);
 		_data->window.setVerticalSyncEnabled(1);
 		_data->Machine.AddState(StateRef(new StartState(_data)), 0);
