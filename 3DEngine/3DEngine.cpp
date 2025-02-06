@@ -6,6 +6,6 @@ using namespace sf;
 
 int main()
 {
-    game::Game(SCREEN_WIDTH, SCREEN_HEIGHT, "test");
+    game::Game(SCREEN_WIDTH, SCREEN_HEIGHT, "Elles Loki");
     return 0;
 }
