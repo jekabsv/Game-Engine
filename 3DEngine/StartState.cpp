@@ -99,10 +99,6 @@ namespace game
 
 
 
-
-
-
-
         vCamera = { 95, 75, -95 };
         fYaw = 2.3f;
         fPitch = -0.5f;
