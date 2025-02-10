@@ -646,4 +646,103 @@ namespace game
 
 		return dis(gen);
 	}
+	// WallClipp: Clips each triangle of the input mesh against the four screen planes.
+	bool Tools::WallClipp(const mesh& meshToDraw, mesh& meshClipped)
+	{
+		// Iterate through all triangles in the mesh.
+		for (auto& triToRaster : meshToDraw.tris)
+		{
+			triangle clipped[2];
+			std::list<triangle> listTriangles;
+			listTriangles.push_back(triToRaster);
+			int nNewTriangles = 1;
+
+			// Clip against each of the four walls:
+			//  p = 0: top, p = 1: bottom, p = 2: left, p = 3: right.
+			for (int p = 0; p < 4; p++)
+			{
+				int nTrisToAdd = 0;
+				while (nNewTriangles > 0)
+				{
+					triangle test = listTriangles.front();
+					listTriangles.pop_front();
+					nNewTriangles--;
+
+					switch (p)
+					{
+					case 0:
+						nTrisToAdd = TriangleClipAgainstPlane(
+							{ 0.0f, 0.0f, 0.0f },
+							{ 0.0f, 1.0f, 0.0f },
+							test, clipped[0], clipped[1]
+						);
+						break;
+					case 1:
+						nTrisToAdd = TriangleClipAgainstPlane(
+							{ 0.0f, static_cast<float>(SCREEN_HEIGHT) - 1, 0.0f },
+							{ 0.0f, -1.0f, 0.0f },
+							test, clipped[0], clipped[1]
+						);
+						break;
+					case 2:
+						nTrisToAdd = TriangleClipAgainstPlane(
+							{ 0.0f, 0.0f, 0.0f },
+							{ 1.0f, 0.0f, 0.0f },
+							test, clipped[0], clipped[1]
+						);
+						break;
+					case 3:
+						nTrisToAdd = TriangleClipAgainstPlane(
+							{ static_cast<float>(SCREEN_WIDTH) - 1, 0.0f, 0.0f },
+							{ -1.0f, 0.0f, 0.0f },
+							test, clipped[0], clipped[1]
+						);
+						break;
+					}
+					// Add any newly formed triangles from clipping.
+					for (int w = 0; w < nTrisToAdd; w++)
+					{
+						listTriangles.push_back(clipped[w]);
+					}
+				}
+				// Reset the counter for the next clipping plane.
+				nNewTriangles = listTriangles.size();
+			}
+			// Append the fully clipped triangles to the output mesh.
+			for (auto& x : listTriangles)
+			{
+				meshClipped.tris.push_back(x);
+			}
+		}
+		return true;
+	}
+	// DrawMesh: Draws each triangle in the provided mesh using the specified texture and transparency.
+	bool Tools::DrawMesh(const mesh& meshToDraw, sf::RenderWindow& window, std::map<std::string, sf::Texture>& textures, int Transparency)
+	{
+		for (auto& x : meshToDraw.tris)
+		{
+			sf::VertexArray trigle(sf::Triangles, 3);
+
+			// Set the color with the desired transparency.
+			trigle[0].color = sf::Color(x.color.r, x.color.g, x.color.b, Transparency);
+			trigle[1].color = sf::Color(x.color.r, x.color.g, x.color.b, Transparency);
+			trigle[2].color = sf::Color(x.color.r, x.color.g, x.color.b, Transparency);
+
+			// Set the texture coordinates.
+			trigle[0].texCoords = sf::Vector2f(x.t[0].x, x.t[0].y);
+			trigle[1].texCoords = sf::Vector2f(x.t[1].x, x.t[1].y);
+			trigle[2].texCoords = sf::Vector2f(x.t[2].x, x.t[2].y);
+
+			// Set the positions.
+			trigle[0].position = sf::Vector2f(x.p[0].x, x.p[0].y);
+			trigle[1].position = sf::Vector2f(x.p[1].x, x.p[1].y);
+			trigle[2].position = sf::Vector2f(x.p[2].x, x.p[2].y);
+
+			// Draw the triangle using its associated texture.
+			window.draw(trigle, &textures[x.TextureName]);
+		}
+		return true;
+	}
+
+
 }

@@ -63,6 +63,8 @@ namespace game
 		bool ClipNDraw(mesh meshToDraw, sf::RenderWindow& window, std::map<std::string, sf::Texture>& textures, int Transparency);
 		void LookAtCamera(vec3d& objPos, vec3d& vCamera, float& fYaw, float& fPitch);
 		int Random(int from, int to);
+		bool WallClipp(const mesh& meshToDraw, mesh& meshClipped);
+		bool DrawMesh(const mesh& meshToDraw, sf::RenderWindow& window, std::map<std::string, sf::Texture>& textures, int Transparency);
 	};
 
 }

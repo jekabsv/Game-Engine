@@ -29,35 +29,18 @@ namespace game
 		void Draw(float dt) override;
 		void Pause() override;
 		void Resume() override;
-		void ChooseCard();
 	private:
 		GameDataRef _data;
-		sf::Clock clock, moveclock, RollCooldown;
+		sf::Clock clock;
 		mat4x4 matProj;
 		float fThetax, fThetay, fThetaz;
 		float fYaw = 1.57079632679f;   // Yaw (left/right rotation)
 		float fPitch = 0.0f; // Pitch (up/down rotation)
 		float CameraYv = 0.0f;
-		sf::Texture texture;
 		vec3d vLookDir, vCamera;
-		bool WPressed, SPressed, APressed, DPressed, SpacePressed, OnGround, hidden, DrawCard;
-		bool SwitchPlayers, RollCheck, skipOtherPlayer, InfoOpen, ReadyToRoll;
+		bool WPressed, SPressed, APressed, DPressed, SpacePressed, OnGround, hidden, LShiftPressed;
 		sf::Vector2i CameraPos2d;
-		sf::Sprite RollButton, InfoButton, InfoScreen, Card;
-		sf::Sprite icon[3];
-		sf::Text rollNumber, LevelTxt, Debug;
-		vec3d locationCoordinates[20];
-		player players[3];
-		mesh Levels[10];
-		sf::Color Background[10];
-		int vcameraFinal, cardRolled, PlayerToMove, nrFinished, level;
-		int playersToSkip[3];
-		int NextMoveTwice[3];
-		int NoBonuses[3];
-		int NoPunishments[3];
-		std::string InfoScreenPaths[10], LevelNames[10];
-		sf::RectangleShape Effects[10];
-
-		sf::Color BaclgroundColor;
+		int vcameraFinal;
+		mesh Cube;
 	};
 }
