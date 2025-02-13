@@ -23,11 +23,24 @@ namespace game
 	}
 	void StartState::Init()
 	{
-        
+
+        MeshesToTranform.clear();
+        MeshesToTranform.resize(2);
+
+        vLight = { -0.6f, 0.2f, -0.8f };
         std::vector <std::string> Textures;
-        Cube.ReadOBJ("../../Resources/Cube.obj", Textures);
+        mesh cube;
+
+        MeshesToTranform[0].ReadOBJ("../../Resources/Obj.obj", Textures);
         for (auto x : Textures)
-            _data->AssetManager.LoadTextureMTL(x, "../../Resources/Cube.mtl");
+            _data->AssetManager.LoadTextureMTL(x, "../../Resources/Obj.mtl");
+
+
+       MeshesToTranform[1].ReadOBJ("../../Resources/Obj.obj", Textures);
+        for (auto x : Textures)
+            _data->AssetManager.LoadTextureMTL(x, "../../Resources/Obj.mtl");
+
+
 
         /*for (int i = 0;i < _mesh.tris.size();i++)
         {
@@ -68,29 +81,29 @@ namespace game
         if (WPressed)
         {
             float y = vCamera.y;
-            vCamera = _data->tools.VectorAdd(vCamera, _data->tools.MultiplyVector(vLookDir, fMovementSpeed));
+            vCamera = _data->tools.vectorArithmetic.VectorAdd(vCamera, _data->tools.vectorArithmetic.MultiplyVector(vLookDir, fMovementSpeed));
             vCamera.y = y;
         }
         if (SPressed)
         {
             float y = vCamera.y;
-            vCamera = _data->tools.VectorAdd(vCamera, _data->tools.MultiplyVector(vLookDir, -fMovementSpeed));
+            vCamera = _data->tools.vectorArithmetic.VectorAdd(vCamera, _data->tools.vectorArithmetic.MultiplyVector(vLookDir, -fMovementSpeed));
             vCamera.y = y;
         }
         if (APressed)
         {
-            vec3d right = _data->tools.crossProduct(vLookDir, { 0.0f, 1.0f, 0.0f });
-            right = _data->tools.normalizeVector(right);
+            vec3d right = _data->tools.vectorArithmetic.crossProduct(vLookDir, { 0.0f, 1.0f, 0.0f });
+            right = _data->tools.vectorArithmetic.normalizeVector(right);
             float y = vCamera.y;
-            vCamera = _data->tools.VectorAdd(vCamera, _data->tools.MultiplyVector(right, -fMovementSpeed));
+            vCamera = _data->tools.vectorArithmetic.VectorAdd(vCamera, _data->tools.vectorArithmetic.MultiplyVector(right, -fMovementSpeed));
             vCamera.y = y;
         }
         if (DPressed)
         {
-            vec3d right = _data->tools.crossProduct(vLookDir, { 0.0f, 1.0f, 0.0f });
-            right = _data->tools.normalizeVector(right);
+            vec3d right = _data->tools.vectorArithmetic.crossProduct(vLookDir, { 0.0f, 1.0f, 0.0f });
+            right = _data->tools.vectorArithmetic.normalizeVector(right);
             float y = vCamera.y;
-            vCamera = _data->tools.VectorAdd(vCamera, _data->tools.MultiplyVector(right, fMovementSpeed));
+            vCamera = _data->tools.vectorArithmetic.VectorAdd(vCamera, _data->tools.vectorArithmetic.MultiplyVector(right, fMovementSpeed));
             vCamera.y = y;
         }
         if (SpacePressed)
@@ -158,6 +171,12 @@ namespace game
     }
     void StartState::Update(float dt)
     {
+        MeshesTransformed.clear();
+        MeshesToRender.clear();
+        MeshesTransformed.resize(2);
+        MeshesToRender.resize(2);
+
+
         if (hidden)
             _data->window.setMouseCursorVisible(0);
         else _data->window.setMouseCursorVisible(1);
@@ -174,64 +193,48 @@ namespace game
             }
         }
         CameraPos2d = CameraPos2d2;
-        
+
+
+        _data->tools.rendering3D.UpdateCamera(fYaw, fPitch, vCamera, vLookDir, matView);
 
 
 
 
 
 
-        vec3d vLight{ -0.6f, 0.2f, -0.8f };
-        
-        //vLight = _data->tools.normalizeVector(vLight);
 
-
-        mat4x4 matView;
 
         mesh CubeToCameraClipp, CubeToWallClipp, CubeToDraw;
+        mesh CubeToCameraClipp2, CubeToWallClipp2, CubeToDraw2;
+
+
+        _data->tools.rendering3D.TransformObj(-3.1415926535 / 2, 0, 0, 0, 0, 0, 1, 1, 1, MeshesToTranform[0], MeshesTransformed[0], 255);
+        _data->tools.rendering3D.TransformObj(-3.1415926535 / 2, 0, 0, 0, 0, 50, 1, 1, 1, MeshesToTranform[1], MeshesTransformed[1], 255);
+
+        
+
+        //_data->tools.rendering3D.Clip(MeshesTransformed, MeshesToRender, vCamera, vLookDir, vLight, matView, matProj);
+        _data->tools.rendering3D.CameraClipp(MeshesTransformed[0], vCamera, vLookDir, vLight, matView, matProj, MeshesToRender[0]);
+        _data->tools.rendering3D.CameraClipp(MeshesTransformed[1], vCamera, vLookDir, vLight, matView, matProj, MeshesToRender[1]);
 
 
 
-        float g = 0;
-        CameraYv -= g;
-
-        vCamera.y += CameraYv;
-       /*if (vCamera.y <= vcameraFinal)
-        {
-            CameraYv = 0;
-            vCamera.y = vcameraFinal;
-            OnGround = true;
-        }
-        else OnGround = false;*/
+        _data->tools.rendering3D.WallClipp(CubeToWallClipp, CubeToDraw);
+        _data->tools.rendering3D.WallClipp(CubeToWallClipp2, CubeToDraw2);
 
 
-        _data->tools.UpdateCamera(fYaw, fPitch, vCamera, vLookDir, matView);
-        vLight = vLookDir;
-
-        float ObjYaw = 0;
-        float ObjPitch = 0;
-        vec3d Obj = { 0, 0, 250 };
 
 
-        _data->tools.TransformObj(0, 0, 0, 0, 0, 0, 1, 1, 1, Cube, CubeToCameraClipp);
-        _data->tools.CameraClipp(CubeToCameraClipp, vCamera, vLookDir, vLight, matView, matProj, CubeToWallClipp);
-        _data->tools.WallClipp(CubeToWallClipp, CubeToDraw);
-
-        //_data->tools.WallClipp()
-
-        std::sort(CubeToDraw.tris.begin(), CubeToDraw.tris.end(), CompareByAverageZ);
         _data->window.clear();
-
-        _data->tools.DrawMesh(CubeToDraw, _data->window, _data->AssetManager._textures, 255);
-        //_data->tools.ClipNDraw(CubeToDraw, _data->window, _data->AssetManager._textures, 255);
-
     }
 
 
-
+    
 	void StartState::Draw(float dt)
 	{
-      //_data->window.draw();
+        //_data->tools.rendering3D.DrawMesh(MeshesToRender[0], _data->window, _data->AssetManager._textures, 255);
+        //_data->tools.rendering3D.DrawMesh(MeshesToRender[1], _data->window, _data->AssetManager._textures, 255);
+        _data->tools.rendering3D.DrawMeshesWithDepthBuffer(MeshesToRender, _data->window, _data->AssetManager._textures);
 		_data->window.display();
 	}
 }

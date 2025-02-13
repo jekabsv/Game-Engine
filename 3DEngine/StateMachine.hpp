@@ -2,7 +2,7 @@
 
 #include <memory>
 #include <stack>
-
+#include "InputManager.hpp"
 #include "State.hpp"
 
 namespace game
@@ -20,7 +20,7 @@ namespace game
 	private:
 		std::stack<StateRef> _states;
 		StateRef _newState;
-
+		InputManager inputManager;
 		bool _isRemoving;
 		bool _isAdding;
 		bool _isreplacing;

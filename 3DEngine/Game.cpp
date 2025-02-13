@@ -30,6 +30,7 @@ namespace game
 			}
 			currentTime = newTime;
 			accumulator += frameTime;
+			_data->window.setTitle(std::to_string(1 / frameTime));
 			while (accumulator >= dt)
 			{
 				_data->Machine.GetActiveState()->HandleInput();

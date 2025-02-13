@@ -14,8 +14,8 @@ namespace game
 {
 	struct GameData
 	{
-		StateMachine Machine;
 		InputManager inputManager;
+		StateMachine Machine;
 		AssetManager AssetManager;
 		sf::RenderWindow window;
 		Tools tools;

@@ -41,6 +41,9 @@ namespace game
 		bool WPressed, SPressed, APressed, DPressed, SpacePressed, OnGround, hidden, LShiftPressed;
 		sf::Vector2i CameraPos2d;
 		int vcameraFinal;
-		mesh Cube;
+		mesh Cube, Cube2;
+		vec3d vLight;
+		mat4x4 matView;
+		std::vector <mesh> MeshesToRender, MeshesToTranform, MeshesTransformed;
 	};
 }
