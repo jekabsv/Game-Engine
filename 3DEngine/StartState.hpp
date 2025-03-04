@@ -40,7 +40,7 @@ namespace game
 		vec3d vLookDir, vCamera;
 		bool WPressed, SPressed, APressed, DPressed, SpacePressed, OnGround, hidden, LShiftPressed;
 		sf::Vector2i CameraPos2d;
-		int vcameraFinal;
+		int vcameraFinal, nrOfMeshes;
 		mesh Cube, Cube2;
 		vec3d vLight;
 		mat4x4 matView;

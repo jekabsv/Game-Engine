@@ -11,6 +11,10 @@
 #include <limits>
 #include <cmath>
 #include <algorithm>
+#include <SFML/OpenGL.hpp>
+#pragma comment(lib, "opengl32.lib")
+
+
 
 namespace game
 {
@@ -119,7 +123,7 @@ namespace game
         matrix.m[3][0] = pos.x;      matrix.m[3][1] = pos.y;      matrix.m[3][2] = pos.z;      matrix.m[3][3] = 1.0f;
         return matrix;
     }
-
+        
     vec3d Tools::Rendering3D::Vector_IntersectPlane(vec3d& plane_p, vec3d& plane_n, vec3d& lineStart, vec3d& lineEnd)
     {
         plane_n = vectorArithmetic.normalizeVector(plane_n);
@@ -292,29 +296,21 @@ namespace game
         static std::map<std::string, sf::Image> cachedTextureImages;
         static std::vector<sf::Uint8> precomputedRow;
 
-        // --- Optimize Pixel Buffer Initialization ---
-        // If the precomputed row isn't built yet, create it.
         if (precomputedRow.empty()) {
             precomputedRow.resize(SCREEN_WIDTH * 4);
-            for (int i = 0; i < SCREEN_WIDTH; i++) {
-                precomputedRow[i * 4 + 0] = 0;    // Red
-                precomputedRow[i * 4 + 1] = 0;    // Green
-                precomputedRow[i * 4 + 2] = 0;    // Blue
-                precomputedRow[i * 4 + 3] = 255;  // Alpha (fully opaque)
+            for (int i = 0; i < SCREEN_WIDTH; i += 4) {
+                precomputedRow[i] = 0;
+                precomputedRow[i + 1] = 0;
+                precomputedRow[i + 2] = 0;
+                precomputedRow[i + 3] = 255;
             }
         }
-        // Instead of looping with multiplications for each pixel, copy the precomputed row into each row.
         for (int y = 0; y < SCREEN_HEIGHT; y++) {
             std::copy(precomputedRow.begin(), precomputedRow.end(), pixelData.begin() + y * SCREEN_WIDTH * 4);
         }
 
-        // --- Reset the Depth Buffer ---
-        // Instead of reallocating, we simply reset all entries to the max float value.
         std::fill(depthBuffer.begin(), depthBuffer.end(), std::numeric_limits<float>::max());
 
-        // --- Cache Texture Images ---
-        // If textures are not likely to change every frame, we convert them to images only when needed.
-        // Check if the cached texture images need to be updated:
         bool updateTextureCache = false;
         if (cachedTextureImages.size() != textures.size()) {
             updateTextureCache = true;
@@ -335,23 +331,18 @@ namespace game
             }
         }
 
-        // --- Rasterize Meshes ---
-        // Process each mesh and its triangles, rasterizing them into the pixel and depth buffers.
         for (const auto& mesh : meshes) {
             for (const auto& tri : mesh.tris) {
                 RasterizeTriangleToBuffer(tri, pixelData, depthBuffer, cachedTextureImages, SCREEN_WIDTH, SCREEN_HEIGHT);
             }
         }
 
-        // --- Reuse the Output Texture ---
-        // Create the output texture only once, then update it each frame with new pixel data.
         if (!outputTextureCreated) {
             outputTexture.create(SCREEN_WIDTH, SCREEN_HEIGHT);
             outputTextureCreated = true;
         }
         outputTexture.update(pixelData.data());
 
-        // Draw the sprite using the updated output texture.
         sf::Sprite sprite(outputTexture);
         window.draw(sprite);
 
@@ -527,10 +518,8 @@ namespace game
                         }
                         else
                         {
-                            // Update the depth buffer when fully opaque
                             depthBuffer[idx] = depth;
                         }
-                        // Write the new color into the pixel buffer
                         pixelData[pixelIndex + 0] = newColor.r;
                         pixelData[pixelIndex + 1] = newColor.g;
                         pixelData[pixelIndex + 2] = newColor.b;
@@ -542,13 +531,15 @@ namespace game
     }
     bool Tools::Rendering3D::Clip(std::vector<mesh>& MeshesToClipp, std::vector<mesh>& MeshesToRender, vec3d& vCamera, vec3d& vLookDir, vec3d& vLight, mat4x4& matView, mat4x4& matProj)
     {
-        MeshesToRender.reserve(MeshesToClipp.size());
+        MeshesToRender.resize(MeshesToClipp.size());
         std::vector <mesh> temp;
-        temp.reserve(MeshesToClipp.size());
+        temp.resize(MeshesToClipp.size());
         for (int i = 0; i < MeshesToClipp.size(); i++)
         {
             CameraClipp(MeshesToClipp[i], vCamera, vLookDir, vLight, matView, matProj, temp[i]);
-            WallClipp(temp[i], MeshesToRender[i]);
+
+            MeshesToRender[i] = temp[i];
+            //WallClipp(temp[i], MeshesToRender[i]);
         }
 
 
@@ -599,6 +590,103 @@ namespace game
     }
 
 
+    bool Tools::Rendering3D::DrawMeshesWithDepthBuffer2(const std::vector<mesh>& meshes, sf::RenderWindow& window, std::map<std::string, sf::Texture>& textures)
+    {
+        int screenWidth = window.getSize().x;
+        int screenHeight = window.getSize().y;
+        glViewport(0, 0, screenWidth, screenHeight);
+        glClearDepth(1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glDepthFunc(GL_LEQUAL);
+        glEnable(GL_DEPTH_TEST);
+        glEnable(GL_TEXTURE_2D);
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        glColor3f(1.0f, 0.0f, 0.0f);
+        for (const auto& m : meshes)
+        {
+            for (const auto& tri : m.tris)
+            {
+                glBegin(GL_TRIANGLES);
+                std::cout << normalization(0, 1920, tri.p[0].x) << ' ' << normalization(0, 1920, tri.p[0].y) << ' ' << normalization(0, 1920, tri.p[0].z) << '\n';
+                //normalization(0, 1920, tri.p[0].y);
+                glVertex3f(normalization(0, 1920, tri.p[0].x) , normalization(0, 1920, tri.p[0].y), tri.p[0].z);
+                glVertex3f(normalization(0, 1920, tri.p[1].x) , normalization(0, 1920, tri.p[1].y), tri.p[1].z);
+                glVertex3f(normalization(0, 1920, tri.p[2].x) , normalization(0, 1920, tri.p[2].y), tri.p[2].z);
+                glEnd();
+            }
+        }
+        window.display();
+        return true;
+    }
+    #include <map>
+
+    void Tools::Rendering3D::DrawMeshesWithOpenGL(const std::vector<mesh>& meshes, std::map<std::string, sf::Texture>& textures, sf::RenderWindow& window) {
+        window.setActive(true);
+
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LESS);
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
+        glDepthRange(0.0, 1.0); // Ensure depth range is properly mapped
+
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+
+        // Expanding near and far plane to ensure your triangles are visible
+        glOrtho(-1, 1, -1, 1, -1, 10);
+
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+        glTranslatef(0, 0, -2.0f); // Move camera back to make sure objects are in view
+
+        for (const auto& mesh : meshes) {
+            bool hasTexture = false;
+            GLuint textureID = 0;
+
+            if (!mesh.tris.empty() && !mesh.tris[0].TextureName.empty()) {
+                auto it = textures.find(mesh.tris[0].TextureName);
+                if (it != textures.end()) {
+                    textureID = it->second.getNativeHandle();
+                    hasTexture = true;
+                    glEnable(GL_TEXTURE_2D);
+                    glBindTexture(GL_TEXTURE_2D, textureID);
+                }
+            }
+
+            glBegin(GL_TRIANGLES); // Change to GL_POINTS for debugging
+
+            for (const auto& tri : mesh.tris) {
+                for (int i = 0; i < 3; ++i) {
+                    float normX = (tri.p[i].x / SCREEN_WIDTH) * 2.0f - 1.0f;
+                    float normY = 1.0f - (tri.p[i].y / SCREEN_HEIGHT) * 2.0f;
+                    float normZ = tri.p[i].z;
+
+                    std::cout << "Vertex: (" << normX << ", " << normY << ", " << normZ << ")" << std::endl;
+
+                    if (hasTexture) glTexCoord2f(tri.t[i].x, tri.t[i].y);
+                    glColor4ub(tri.color.r, tri.color.g, tri.color.b, tri.color.a);
+                    glVertex3f(normX, normY, normZ);
+                }
+            }
+
+            glEnd();
+
+            if (hasTexture) {
+                glBindTexture(GL_TEXTURE_2D, 0);
+                glDisable(GL_TEXTURE_2D);
+            }
+        }
+
+        window.display();
+    }
+
+    float Tools::Rendering3D::normalization(float min, float max, float value)
+    {
+        return (value - min) / (max - min);
+    }
     float Tools::Utility::normalization(float min, float max, float value)
     {
         return (value - min) / (max - min);

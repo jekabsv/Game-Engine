@@ -67,12 +67,15 @@ namespace game
 		class Rendering3D
 		{
 		public:
+			float normalization(float min, float max, float value);
 			Rendering3D(VectorArithmetic& o1, MatrixArithmetic& o2) : vectorArithmetic(o1), matrixArithmetic(o2) {};
 			vec3d Vector_IntersectPlane(vec3d& plane_p, vec3d& plane_n, vec3d& lineStart, vec3d& lineEnd);
 			int TriangleClipAgainstPlane(vec3d plane_p, vec3d plane_n, triangle& in_tri, triangle& out_tri1, triangle& out_tri2);
 			bool CameraClipp(mesh& meshToClipp, vec3d& vCamera, vec3d& vLookDir, vec3d vLight, mat4x4& matView, mat4x4& matProj, mesh& MeshClipped);
 			bool UpdateCamera(float& fYaw, float& fPitch, vec3d& vCamera, vec3d& vLookDir, mat4x4& matView);
 			bool WallClipp(const mesh& meshToDraw, mesh& meshClipped);
+			bool DrawMeshesWithDepthBuffer2(const std::vector<mesh>& meshes, sf::RenderWindow& window, std::map<std::string, sf::Texture>& textures);
+			void DrawMeshesWithOpenGL(const std::vector<mesh>& meshes, std::map<std::string, sf::Texture>& textures, sf::RenderWindow& window);
 			bool DrawMesh(const mesh& meshToDraw, sf::RenderWindow& window, std::map<std::string, sf::Texture>& textures, int Transparency);
 			bool DrawMeshesWithDepthBuffer(const std::vector<mesh>& meshes, sf::RenderWindow& window, std::map<std::string, sf::Texture>& textures);
 			void TransformObj(float fThetax, float fThetay, float fThetaz, float x, float y, float z, float scaleX, float scaleY, float scaleZ, mesh& _mesh, mesh& meshToDraw, int Transparency);

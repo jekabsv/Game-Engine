@@ -31,12 +31,12 @@ namespace game
 			currentTime = newTime;
 			accumulator += frameTime;
 			_data->window.setTitle(std::to_string(1 / frameTime));
-			while (accumulator >= dt)
-			{
+			//while (accumulator >= dt)
+			//{
 				_data->Machine.GetActiveState()->HandleInput();
 				_data->Machine.GetActiveState()->Update(dt);
 				accumulator -= dt;
-			}
+			//}
 			interpolation = accumulator / dt;
 			_data->Machine.GetActiveState()->Draw(interpolation);
 		}

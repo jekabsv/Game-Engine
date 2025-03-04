@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <iostream>
 #include <list>
+#include <chrono>
 
 namespace game
 {
@@ -23,22 +24,22 @@ namespace game
 	}
 	void StartState::Init()
 	{
-
+        nrOfMeshes = 1;
         MeshesToTranform.clear();
-        MeshesToTranform.resize(2);
+        MeshesToTranform.resize(nrOfMeshes);
+        MeshesTransformed.clear();
+        MeshesToRender.clear();
+        MeshesTransformed.resize(nrOfMeshes);
+        MeshesToRender.resize(nrOfMeshes);
+
 
         vLight = { -0.6f, 0.2f, -0.8f };
         std::vector <std::string> Textures;
         mesh cube;
 
-        MeshesToTranform[0].ReadOBJ("../../Resources/Obj.obj", Textures);
+        MeshesToTranform[0].ReadOBJ("../../Resources/Cube.obj", Textures);
         for (auto x : Textures)
-            _data->AssetManager.LoadTextureMTL(x, "../../Resources/Obj.mtl");
-
-
-       MeshesToTranform[1].ReadOBJ("../../Resources/Obj.obj", Textures);
-        for (auto x : Textures)
-            _data->AssetManager.LoadTextureMTL(x, "../../Resources/Obj.mtl");
+            _data->AssetManager.LoadTextureMTL(x, "../../Resources/Cube.mtl");
 
 
 
@@ -109,6 +110,7 @@ namespace game
         if (SpacePressed)
         {
             vCamera.y += 2;
+            std::cout << fPitch << ' ';
         }
         if (LShiftPressed)
         {
@@ -171,10 +173,7 @@ namespace game
     }
     void StartState::Update(float dt)
     {
-        MeshesTransformed.clear();
-        MeshesToRender.clear();
-        MeshesTransformed.resize(2);
-        MeshesToRender.resize(2);
+        
 
 
         if (hidden)
@@ -194,47 +193,49 @@ namespace game
         }
         CameraPos2d = CameraPos2d2;
 
+        if (fPitch <= -PI/2+0.01f)
+            fPitch = -PI/2+0.01f;
+        if (fPitch >= PI / 2 + 0.01f)
+            fPitch = PI / 2 + 0.01f;
+
 
         _data->tools.rendering3D.UpdateCamera(fYaw, fPitch, vCamera, vLookDir, matView);
 
 
-
-
-
-
-
-
-        mesh CubeToCameraClipp, CubeToWallClipp, CubeToDraw;
-        mesh CubeToCameraClipp2, CubeToWallClipp2, CubeToDraw2;
-
+        auto start = std::chrono::high_resolution_clock::now();
 
         _data->tools.rendering3D.TransformObj(-3.1415926535 / 2, 0, 0, 0, 0, 0, 1, 1, 1, MeshesToTranform[0], MeshesTransformed[0], 255);
-        _data->tools.rendering3D.TransformObj(-3.1415926535 / 2, 0, 0, 0, 0, 50, 1, 1, 1, MeshesToTranform[1], MeshesTransformed[1], 255);
+        //_data->tools.rendering3D.TransformObj(-3.1415926535 / 2, 0, 0, 0, 0, 50, 1, 1, 1, MeshesToTranform[1], MeshesTransformed[1], 255);
 
-        
+        auto end = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double, std::milli> elapsed = end - start;
+        std::cout << "Transforming took: " << elapsed.count() << "ms\n";
 
-        //_data->tools.rendering3D.Clip(MeshesTransformed, MeshesToRender, vCamera, vLookDir, vLight, matView, matProj);
-        _data->tools.rendering3D.CameraClipp(MeshesTransformed[0], vCamera, vLookDir, vLight, matView, matProj, MeshesToRender[0]);
-        _data->tools.rendering3D.CameraClipp(MeshesTransformed[1], vCamera, vLookDir, vLight, matView, matProj, MeshesToRender[1]);
+        start = std::chrono::high_resolution_clock::now();
 
+        _data->tools.rendering3D.Clip(MeshesTransformed, MeshesToRender, vCamera, vLookDir, vLight, matView, matProj);
+        //MeshesToRender = MeshesTransformed;
 
-
-        _data->tools.rendering3D.WallClipp(CubeToWallClipp, CubeToDraw);
-        _data->tools.rendering3D.WallClipp(CubeToWallClipp2, CubeToDraw2);
-
-
-
-
-        _data->window.clear();
+        end = std::chrono::high_resolution_clock::now();
+        elapsed = end - start;
+        std::cout << "Clipping took: " << elapsed.count() << "ms\n";
     }
 
 
     
 	void StartState::Draw(float dt)
 	{
-        //_data->tools.rendering3D.DrawMesh(MeshesToRender[0], _data->window, _data->AssetManager._textures, 255);
-        //_data->tools.rendering3D.DrawMesh(MeshesToRender[1], _data->window, _data->AssetManager._textures, 255);
-        _data->tools.rendering3D.DrawMeshesWithDepthBuffer(MeshesToRender, _data->window, _data->AssetManager._textures);
+        std::cout << '\n';
+        auto start = std::chrono::high_resolution_clock::now();
+        std::cout << MeshesToRender[0].tris.size() << '\n';
+        //for (auto x : MeshesToRender[0].tris)
+            //std::cout << x.p[0].x << ' ' << x.p[0].y << ' ' << x.p[0].z << '\n' << x.p[1].x << ' ' << x.p[1].y << ' ' << x.p[1].z << '\n' << x.p[2].x << ' ' << x.p[2].y << ' ' << x.p[2].z << '\n';
+        _data->window.clear();
+        _data->tools.rendering3D.DrawMeshesWithOpenGL(MeshesToRender, _data->AssetManager._textures, _data->window);
+        //_data->tools.rendering3D.DrawMeshesWithDepthBuffer(MeshesToRender, _data->window, _data->AssetManager._textures);
 		_data->window.display();
+        auto end = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double, std::milli> elapsed = end - start;
+        std::cout << "Drawing took: " << elapsed.count() << "ms\n";
 	}
 }
