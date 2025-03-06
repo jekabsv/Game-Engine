@@ -4,6 +4,8 @@
 #include <iostream>
 #include <sstream>
 #include "DEFINITIONS.hpp"
+#include <cstdint>
+
 
 namespace game
 {
@@ -29,6 +31,10 @@ namespace game
 		std::vector<vec3d> vertices;
 		std::vector<vec2d> texCoords;
 
+		vec3d ObjPos = { 0, 0, 0 };
+		vec3d Rotation = { 0, 0, 0 };
+		vec3d Scale = { 0, 0, 0 };
+		uint8_t transparency;
 
 		void ReadSTLBinary(std::string filename);
 		void ReadOBJ(std::string filename, std::vector<std::string>& textures);
@@ -79,6 +85,7 @@ namespace game
 			bool DrawMesh(const mesh& meshToDraw, sf::RenderWindow& window, std::map<std::string, sf::Texture>& textures, int Transparency);
 			bool DrawMeshesWithDepthBuffer(const std::vector<mesh>& meshes, sf::RenderWindow& window, std::map<std::string, sf::Texture>& textures);
 			void TransformObj(float fThetax, float fThetay, float fThetaz, float x, float y, float z, float scaleX, float scaleY, float scaleZ, mesh& _mesh, mesh& meshToDraw, int Transparency);
+			void TranformMeshes(std::vector<mesh>& MeshesTransformed, std::vector<mesh>& MeshesToTransform);
 			void RasterizeTriangleToBuffer(const triangle& tri, std::vector<sf::Uint8>& pixelData, std::vector<float>& depthBuffer, const std::map<std::string, sf::Image>& textureImages, int width, int height);
 			bool Clip(std::vector<mesh>& MeshesToClipp, std::vector<mesh>& MeshesToRender, vec3d& vCamera, vec3d& vLookDir, vec3d& vLight, mat4x4& matView, mat4x4& matProj);
 		private:

@@ -37,9 +37,9 @@ namespace game
         std::vector <std::string> Textures;
         mesh cube;
 
-        MeshesToTranform[0].ReadOBJ("../../Resources/Cube.obj", Textures);
+        MeshesToTranform[0].ReadOBJ("../../Resources/Villager.obj", Textures);
         for (auto x : Textures)
-            _data->AssetManager.LoadTextureMTL(x, "../../Resources/Cube.mtl");
+            _data->AssetManager.LoadTextureMTL(x, "../../Resources/Villager.mtl");
 
 
 
@@ -203,9 +203,23 @@ namespace game
 
 
         auto start = std::chrono::high_resolution_clock::now();
+        MeshesToTranform[0].ObjPos = { 0, 0, 0 };
+        MeshesToTranform[0].transparency = 255;
+        MeshesToTranform[0].Scale = { 1, 1, 1 };
+        //MeshesToTranform[0].Rotation = { -PI / 2, 0, 0 };
 
-        _data->tools.rendering3D.TransformObj(-3.1415926535 / 2, 0, 0, 0, 0, 0, 1, 1, 1, MeshesToTranform[0], MeshesTransformed[0], 255);
-        //_data->tools.rendering3D.TransformObj(-3.1415926535 / 2, 0, 0, 0, 0, 50, 1, 1, 1, MeshesToTranform[1], MeshesTransformed[1], 255);
+        _data->tools.rendering3D.TranformMeshes(MeshesTransformed, MeshesToTranform);
+        float tfYaw;
+        float tfPitch;
+        _data->tools.utility.LookAtCamera(MeshesToTranform[0].ObjPos, vCamera, tfYaw, tfPitch);
+        MeshesToTranform[0].Rotation = { -PI/2, tfYaw, 0 };
+
+
+
+
+
+
+
 
         auto end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double, std::milli> elapsed = end - start;
@@ -231,11 +245,13 @@ namespace game
         //for (auto x : MeshesToRender[0].tris)
             //std::cout << x.p[0].x << ' ' << x.p[0].y << ' ' << x.p[0].z << '\n' << x.p[1].x << ' ' << x.p[1].y << ' ' << x.p[1].z << '\n' << x.p[2].x << ' ' << x.p[2].y << ' ' << x.p[2].z << '\n';
         _data->window.clear();
-        _data->tools.rendering3D.DrawMeshesWithOpenGL(MeshesToRender, _data->AssetManager._textures, _data->window);
-        //_data->tools.rendering3D.DrawMeshesWithDepthBuffer(MeshesToRender, _data->window, _data->AssetManager._textures);
-		_data->window.display();
+        //_data->tools.rendering3D.DrawMeshesWithOpenGL(MeshesToRender, _data->AssetManager._textures, _data->window);
+        _data->tools.rendering3D.DrawMeshesWithDepthBuffer(MeshesToRender, _data->window, _data->AssetManager._textures);
+       // _data->tools.rendering3D.DrawMesh(MeshesToRender[0], _data->window, _data->AssetManager._textures, 255);
+        
         auto end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double, std::milli> elapsed = end - start;
         std::cout << "Drawing took: " << elapsed.count() << "ms\n";
+        _data->window.display();
 	}
 }

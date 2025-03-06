@@ -407,6 +407,11 @@ namespace game
             meshToDraw.tris.push_back(trigle);
         }
     }
+    void Tools::Rendering3D::TranformMeshes(std::vector<mesh>& MeshesTransformed, std::vector<mesh>& MeshesToTransform)
+    {
+        for (int i = 0; i < MeshesToTransform.size(); i++)
+            TransformObj(MeshesToTransform[i].Rotation.x, MeshesToTransform[i].Rotation.y, MeshesToTransform[i].Rotation.z, MeshesToTransform[i].ObjPos.x, MeshesToTransform[i].ObjPos.y, MeshesToTransform[i].ObjPos.z, MeshesToTransform[i].Scale.x, MeshesToTransform[i].Scale.y, MeshesToTransform[i].Scale.z, MeshesToTransform[i], MeshesTransformed[i], MeshesToTransform[i].transparency);
+    }
     void Tools::Rendering3D::RasterizeTriangleToBuffer(const triangle& tri, std::vector<sf::Uint8>& pixelData, std::vector<float>& depthBuffer, const std::map<std::string, sf::Image>& textureImages, int width, int height)
     {
         // Try to get texture if available
