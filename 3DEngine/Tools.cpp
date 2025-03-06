@@ -215,6 +215,8 @@ namespace game
                     static_cast<sf::Uint8>(fabs(dp) * 255.0f),
                     static_cast<sf::Uint8>(fabs(dp) * 255.0f),
                     tri.color.a);
+                //testing
+                triViewed.color = sf::Color(255, 255, 255, 255);
                 matrixArithmetic.MultiplyMatrixVector(tri.p[0], triViewed.p[0], matView);
                 matrixArithmetic.MultiplyMatrixVector(tri.p[1], triViewed.p[1], matView);
                 matrixArithmetic.MultiplyMatrixVector(tri.p[2], triViewed.p[2], matView);
@@ -409,6 +411,8 @@ namespace game
     }
     void Tools::Rendering3D::TranformMeshes(std::vector<mesh>& MeshesTransformed, std::vector<mesh>& MeshesToTransform)
     {
+        MeshesTransformed.clear();
+        MeshesTransformed.resize(MeshesToTransform.size());
         for (int i = 0; i < MeshesToTransform.size(); i++)
             TransformObj(MeshesToTransform[i].Rotation.x, MeshesToTransform[i].Rotation.y, MeshesToTransform[i].Rotation.z, MeshesToTransform[i].ObjPos.x, MeshesToTransform[i].ObjPos.y, MeshesToTransform[i].ObjPos.z, MeshesToTransform[i].Scale.x, MeshesToTransform[i].Scale.y, MeshesToTransform[i].Scale.z, MeshesToTransform[i], MeshesTransformed[i], MeshesToTransform[i].transparency);
     }
@@ -536,6 +540,7 @@ namespace game
     }
     bool Tools::Rendering3D::Clip(std::vector<mesh>& MeshesToClipp, std::vector<mesh>& MeshesToRender, vec3d& vCamera, vec3d& vLookDir, vec3d& vLight, mat4x4& matView, mat4x4& matProj)
     {
+        MeshesToRender.clear();
         MeshesToRender.resize(MeshesToClipp.size());
         std::vector <mesh> temp;
         temp.resize(MeshesToClipp.size());

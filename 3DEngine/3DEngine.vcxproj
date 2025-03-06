@@ -136,6 +136,7 @@
     <ClCompile Include="3DEngine.cpp" />
     <ClCompile Include="AssetManager.cpp" />
     <ClCompile Include="DEFINITIONS.hpp" />
+    <ClCompile Include="EntitiesUpdate.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="StartState.cpp" />
@@ -144,6 +145,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AssetManager.hpp" />
+    <ClInclude Include="EntitiesUpdate.hpp" />
     <ClInclude Include="Game.hpp" />
     <ClInclude Include="InputManager.hpp" />
     <ClInclude Include="StartState.hpp" />

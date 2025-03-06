@@ -23,12 +23,14 @@ namespace game
 	{
 	public:
 		StartState(GameDataRef data);
+
 		void Init() override;
 		void HandleInput() override;
 		void Update(float dt) override;
 		void Draw(float dt) override;
 		void Pause() override;
 		void Resume() override;
+
 	private:
 		GameDataRef _data;
 		sf::Clock clock;
@@ -45,5 +47,10 @@ namespace game
 		vec3d vLight;
 		mat4x4 matView;
 		std::vector <mesh> MeshesToRender, MeshesToTranform, MeshesTransformed;
+
+
+
+
+
 	};
 }

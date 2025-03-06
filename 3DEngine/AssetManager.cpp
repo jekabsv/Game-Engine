@@ -2,6 +2,7 @@
 #include "AssetManager.hpp"
 #include <fstream>
 #include <sstream>
+#include "Tools.hpp"
 
 namespace game
 {
@@ -142,6 +143,97 @@ namespace game
         }
     }
 
+    void AssetManager::LoadObj(std::string ObjPath, std::string MtlPath, std::string name)
+    {
+        std::vector<std::string> textures;
+        _textures.clear();
+        const bool debug = false;
+        std::ifstream file(ObjPath);
+        if (!file.is_open())
+        {
+            std::cerr << "Could not open the file!" << std::endl;
+            return;
+        }
+        std::string line, currentMaterial;
+        while (std::getline(file, line))
+        {
+            std::stringstream ss(line);
+            std::string prefix;
+            ss >> prefix;
+            if (prefix == "v")
+            {
+                vec3d vertex;
+                ss >> vertex.x >> vertex.y >> vertex.z;
+                _meshes[name].vertices.push_back(vertex);
+            }
+            else if (prefix == "vt")
+            {
+                vec2d texCoord;
+                ss >> texCoord.x >> texCoord.y;
+                _meshes[name].texCoords.push_back(texCoord);
+            }
+            else if (prefix == "f")
+            {
+                triangle tri;
+                std::string vertexData;
+                for (int i = 0; i < 3; i++)
+                {
+                    ss >> vertexData;
+                    std::stringstream vertexStream(vertexData);
+                    int vertexIndex, texCoordIndex;
+                    if (std::getline(vertexStream, vertexData, '/'))
+                    {
+                        vertexIndex = std::stoi(vertexData);
+                        if (std::getline(vertexStream, vertexData, '/'))
+                        {
+                            texCoordIndex = !vertexData.empty() ? std::stoi(vertexData) : -1;
+                        }
+                        else
+                        {
+                            texCoordIndex = -1;
+                        }
+                    }
+                    if (vertexIndex - 1 >= 0 && vertexIndex - 1 < _meshes[name].vertices.size())
+                    {
+                        tri.p[i] = _meshes[name].vertices[vertexIndex - 1];
+                    }
+                    else
+                    {
+                        std::cerr << "Invalid vertex index detected!" << std::endl;
+                        return;
+                    }
+                    if (texCoordIndex != -1 && texCoordIndex - 1 >= 0 && texCoordIndex - 1 < _meshes[name].texCoords.size())
+                    {
+                        tri.t[i] = _meshes[name].texCoords[texCoordIndex - 1];
+                    }
+                    else
+                    {
+                        tri.t[i] = vec2d{ 0.0f, 0.0f };
+                    }
+                }
+                tri.color = sf::Color::White;
+                tri.TextureName = currentMaterial;
+                _meshes[name].tris.push_back(tri);
+            }
+            else if (prefix == "usemtl")
+            {
+                ss >> currentMaterial;
+                textures.push_back(currentMaterial);
+                if (debug)
+                    std::cout << "Using material: " << currentMaterial << std::endl;
+            }
+        }
+        file.close();
+
+
+        for (const auto& x : textures)
+            LoadTextureMTL(x, MtlPath);
+    }
+
+    mesh AssetManager::GetObj(std::string name)
+    {
+        return _meshes[name];
+    }
 
 
 

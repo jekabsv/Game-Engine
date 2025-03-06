@@ -5,6 +5,7 @@
 #include "InputManager.hpp"
 #include "StateMachine.hpp"
 #include "Tools.hpp"
+#include "EntitiesUpdate.hpp"
 #include <SFML/Graphics.hpp>
 
 #include <memory>
@@ -19,7 +20,8 @@ namespace game
 		AssetManager AssetManager;
 		sf::RenderWindow window;
 		Tools tools;
-	};
+		EntitiesUpdate entitiesUpdate;
+	};	
 
 	typedef std::shared_ptr<GameData> GameDataRef;
 	class Game

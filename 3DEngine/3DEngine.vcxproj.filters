@@ -39,11 +39,14 @@
     <ClCompile Include="Tools.cpp">
       <Filter>Source Files\Engine</Filter>
     </ClCompile>
+    <ClCompile Include="DEFINITIONS.hpp">
+      <Filter>Header Files</Filter>
+    </ClCompile>
     <ClCompile Include="StartState.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DEFINITIONS.hpp">
-      <Filter>Header Files</Filter>
+    <ClCompile Include="EntitiesUpdate.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -66,6 +69,9 @@
       <Filter>Header Files\Engine</Filter>
     </ClInclude>
     <ClInclude Include="StartState.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="EntitiesUpdate.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

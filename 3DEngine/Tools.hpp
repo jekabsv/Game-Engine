@@ -3,7 +3,7 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
-#include "DEFINITIONS.hpp"
+#include "DEFINITIONS.hpp" 
 #include <cstdint>
 
 
@@ -27,13 +27,18 @@ namespace game
 	};
 	struct mesh
 	{
+		mesh() {};
+		~mesh() {};
 		std::vector<triangle> tris;
 		std::vector<vec3d> vertices;
 		std::vector<vec2d> texCoords;
 
+		std::string type;
+		sf::Clock lifetime;
+
 		vec3d ObjPos = { 0, 0, 0 };
 		vec3d Rotation = { 0, 0, 0 };
-		vec3d Scale = { 0, 0, 0 };
+		vec3d Scale = { 1, 1, 1 };
 		uint8_t transparency;
 
 		void ReadSTLBinary(std::string filename);

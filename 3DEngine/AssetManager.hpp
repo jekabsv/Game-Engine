@@ -4,7 +4,7 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
 #include "DEFINITIONS.hpp"
-
+#include "Tools.hpp"
 
 namespace game
 {
@@ -25,10 +25,12 @@ namespace game
 		//void UnloadSound();
 		void LoadTextureMTL(std::string name, std::string FileName);
 
+		void LoadObj(std::string ObjPath, std::string MtlPath, std::string name);
+		mesh GetObj(std::string name);
 		
 
 	private:
-		
+		std::map <std::string, mesh> _meshes;
 		std::map <std::string, sf::Font> _fonts;
 		std::map <std::string, sf::SoundBuffer> _sounds;
 	};

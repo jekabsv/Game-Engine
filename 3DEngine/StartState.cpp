@@ -1,6 +1,6 @@
 #include <sstream>
 #include "StartState.hpp"
-
+#include "EntitiesUpdate.hpp"
 #include <algorithm>
 #include <iostream>
 #include <list>
@@ -24,33 +24,22 @@ namespace game
 	}
 	void StartState::Init()
 	{
-        nrOfMeshes = 1;
         MeshesToTranform.clear();
-        MeshesToTranform.resize(nrOfMeshes);
-        MeshesTransformed.clear();
-        MeshesToRender.clear();
-        MeshesTransformed.resize(nrOfMeshes);
-        MeshesToRender.resize(nrOfMeshes);
-
-
         vLight = { -0.6f, 0.2f, -0.8f };
-        std::vector <std::string> Textures;
-        mesh cube;
 
-        MeshesToTranform[0].ReadOBJ("../../Resources/Villager.obj", Textures);
-        for (auto x : Textures)
-            _data->AssetManager.LoadTextureMTL(x, "../../Resources/Villager.mtl");
+        _data->AssetManager.LoadObj("../../Resources/Villager.obj", "../../Resources/Villager.mtl", "Villager");
+
+        MeshesToTranform.push_back(_data->AssetManager.GetObj("Villager"));
+        MeshesToTranform.back().Scale = {0.1, 0.1, 0.1};
+        MeshesToTranform.back().type = "Villager";
 
 
 
-        /*for (int i = 0;i < _mesh.tris.size();i++)
-        {
-            for (int j = 0;j < 3;j++)
-            {
-                std::cout << _mesh.tris[i].p[j].x << ' ' << _mesh.tris[i].p[j].y << ' ' << _mesh.tris[i].p[j].z << ' ';
-            }
-            std::cout << '\n';
-        }*/
+
+
+
+
+
 
 		float fNear = 0.1f;
 		float fFar = 1000.0f;
@@ -110,7 +99,7 @@ namespace game
         if (SpacePressed)
         {
             vCamera.y += 2;
-            std::cout << fPitch << ' ';
+            //std::cout << fPitch << ' ';
         }
         if (LShiftPressed)
         {
@@ -200,19 +189,61 @@ namespace game
 
 
         _data->tools.rendering3D.UpdateCamera(fYaw, fPitch, vCamera, vLookDir, matView);
-
+        
 
         auto start = std::chrono::high_resolution_clock::now();
-        MeshesToTranform[0].ObjPos = { 0, 0, 0 };
-        MeshesToTranform[0].transparency = 255;
-        MeshesToTranform[0].Scale = { 1, 1, 1 };
+        
         //MeshesToTranform[0].Rotation = { -PI / 2, 0, 0 };
+        for (auto& x : MeshesToTranform)
+        {
+            if (x.type == "Villager")
+            {
+                _data->entitiesUpdate.UpdateVillager(x, vCamera, MeshesToTranform);
+            }
+        }
 
-        _data->tools.rendering3D.TranformMeshes(MeshesTransformed, MeshesToTranform);
+
+
+        vec3d vectortoCameraFromVillager = { MeshesToTranform[0].ObjPos.x - vCamera.x, MeshesToTranform[0].ObjPos.y - vCamera.y, MeshesToTranform[0].ObjPos.z - vCamera.z };
+        vectortoCameraFromVillager = _data->tools.vectorArithmetic.normalizeVector(vectortoCameraFromVillager);
+        mesh& Villager = MeshesToTranform[0];
+
+
+
+
+
+
+
+
+        /*Villager.ObjPos.x -= vectortoCameraFromVillager.x/1.0f;
+        Villager.ObjPos.z -= vectortoCameraFromVillager.z/1.0f;
+        Villager.Rotation.y += 0.01f;
+        Villager.Rotation.x = -PI / 2;
         float tfYaw;
         float tfPitch;
-        _data->tools.utility.LookAtCamera(MeshesToTranform[0].ObjPos, vCamera, tfYaw, tfPitch);
-        MeshesToTranform[0].Rotation = { -PI/2, tfYaw, 0 };
+        _data->tools.utility.LookAtCamera(MeshesToTranform[0].ObjPos, vCamera, tfYaw, tfPitch);*/
+       // Villager.Rotation = { -PI / 2, tfYaw, 0 };
+
+
+
+
+
+
+
+        _data->tools.rendering3D.TranformMeshes(MeshesTransformed, MeshesToTranform);
+        
+
+
+
+
+
+
+
+
+
+
+
+        
 
 
 
@@ -223,35 +254,34 @@ namespace game
 
         auto end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double, std::milli> elapsed = end - start;
-        std::cout << "Transforming took: " << elapsed.count() << "ms\n";
+        //std::cout << "Transforming took: " << elapsed.count() << "ms\n";
 
         start = std::chrono::high_resolution_clock::now();
 
         _data->tools.rendering3D.Clip(MeshesTransformed, MeshesToRender, vCamera, vLookDir, vLight, matView, matProj);
-        //MeshesToRender = MeshesTransformed;
 
         end = std::chrono::high_resolution_clock::now();
         elapsed = end - start;
-        std::cout << "Clipping took: " << elapsed.count() << "ms\n";
+        //std::cout << "Clipping took: " << elapsed.count() << "ms\n";
     }
 
 
     
 	void StartState::Draw(float dt)
 	{
-        std::cout << '\n';
+        //std::cout << '\n';
         auto start = std::chrono::high_resolution_clock::now();
-        std::cout << MeshesToRender[0].tris.size() << '\n';
+        //std::cout << MeshesToRender[0].tris.size() << '\n';
         //for (auto x : MeshesToRender[0].tris)
             //std::cout << x.p[0].x << ' ' << x.p[0].y << ' ' << x.p[0].z << '\n' << x.p[1].x << ' ' << x.p[1].y << ' ' << x.p[1].z << '\n' << x.p[2].x << ' ' << x.p[2].y << ' ' << x.p[2].z << '\n';
         _data->window.clear();
         //_data->tools.rendering3D.DrawMeshesWithOpenGL(MeshesToRender, _data->AssetManager._textures, _data->window);
         _data->tools.rendering3D.DrawMeshesWithDepthBuffer(MeshesToRender, _data->window, _data->AssetManager._textures);
-       // _data->tools.rendering3D.DrawMesh(MeshesToRender[0], _data->window, _data->AssetManager._textures, 255);
+        //_data->tools.rendering3D.DrawMesh(MeshesToRender[0], _data->window, _data->AssetManager._textures, 255);
         
         auto end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double, std::milli> elapsed = end - start;
-        std::cout << "Drawing took: " << elapsed.count() << "ms\n";
+        //std::cout << "Drawing took: " << elapsed.count() << "ms\n";
         _data->window.display();
 	}
 }
